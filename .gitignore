@@ -1,0 +1,24 @@
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.dylib
+
+# Executables
+Skybox-Demo
+
+# Temporary files
+trash/
+*~
+*.swp
+*.swo
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Logs
+*.log
