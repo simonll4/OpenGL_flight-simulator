@@ -1,5 +1,5 @@
-#include "gfx/Mesh.h"
-#include "gfx/Shader.h"
+#include "Mesh.h"
+#include "../core/Shader.h"
 #include <glad/glad.h>
 #include <string>
 

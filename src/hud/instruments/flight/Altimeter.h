@@ -1,5 +1,5 @@
 #pragma once
-#include "Instrument.h"
+#include "../../core/Instrument.h"
 
 namespace hud
 {

@@ -1,5 +1,5 @@
-#include "gfx/Renderer2D.h"
-#include "gfx/GLCheck.h"
+#include "Renderer2D.h"
+#include "../core/GLCheck.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>

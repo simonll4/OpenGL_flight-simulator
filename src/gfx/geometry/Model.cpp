@@ -1,5 +1,5 @@
-#include "gfx/Model.h"
-#include "gfx/Shader.h"
+#include "Model.h"
+#include "../core/Shader.h"
 #include <iostream>
 #include "stb/stb_image.h"
 #include <glad/glad.h>

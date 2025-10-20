@@ -1,5 +1,5 @@
 #include "SkyboxRenderer.h"
-#include "GLCheck.h"
+#include "../core/GLCheck.h"
 #include <array>
 #include <glm/gtc/type_ptr.hpp>
 

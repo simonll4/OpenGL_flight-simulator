@@ -24,12 +24,13 @@ extern "C"
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-#include "gfx/SkyboxRenderer.h"
-#include "gfx/TextureCube.h"
-#include "gfx/TerrainRenderer.h"
-#include "gfx/Shader.h"
-#include "gfx/Model.h"
-#include "hud/FlightHUD.h"
+#include "gfx/skybox/SkyboxRenderer.h"
+#include "gfx/skybox/TextureCube.h"
+#include "gfx/terrain/TerrainRenderer.h"
+#include "gfx/core/Shader.h"
+#include "gfx/geometry/Model.h"
+#include "gfx/WaypointRenderer.h"
+#include "hud/core/FlightHUD.h"
 #include "flight/FlightData.h"
 
 // ============================================================================
@@ -73,12 +74,30 @@ flight::FlightData flightData;		 // Datos del avión (velocidad, altitud, etc.)
 hud::FlightHUD *globalHUD = nullptr; // Puntero global al HUD (para callbacks)
 
 // ============================================================================
+// SISTEMA DE WAYPOINTS
+// ============================================================================
+
+struct Waypoint {
+	glm::vec3 position;
+	std::string name;
+	bool captured;  // Indica si el waypoint ya fue alcanzado
+};
+
+std::vector<Waypoint> waypoints;
+int activeWaypointIndex = 0;
+bool waypointSystemEnabled = false;
+bool missionCompleted = false;
+gfx::WaypointRenderer waypointRenderer;
+
+// ============================================================================
 // DECLARACIÓN DE FUNCIONES
 // ============================================================================
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void print_gl_version(void);
+void initializeWaypoints();
+void updateWaypointData();
 
 // ============================================================================
 // FUNCIÓN PRINCIPAL
@@ -180,6 +199,10 @@ int main()
 		flightHUD.init(kWindowWidth, kWindowHeight);
 		flightHUD.setLayout("classic");
 
+		// Waypoint System: inicializar renderizador y waypoints
+		waypointRenderer.init();
+		initializeWaypoints();
+
 		std::cout << "✓ All systems initialized successfully!" << std::endl;
 	}
 	catch (const std::exception &e)
@@ -214,6 +237,9 @@ int main()
 		flightData.pitch = -glm::degrees(euler.x);
 		flightData.roll = glm::degrees(euler.z);
 		flightData.heading = glm::degrees(euler.y);
+
+		// Actualizar datos de waypoint
+		updateWaypointData();
 
 		// --- Manejo de resize de ventana ---
 		int width, height;
@@ -308,6 +334,29 @@ int main()
 		modelShader.setMat4("model", model);
 
 		f16Model.Draw(modelShader);
+
+		// --- Renderizado de Waypoints 3D ---
+		if (waypointSystemEnabled && !missionCompleted)
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			
+			for (size_t i = 0; i < waypoints.size(); ++i)
+			{
+				// Solo renderizar waypoints que NO han sido capturados
+				if (!waypoints[i].captured)
+				{
+					bool isActive = (i == static_cast<size_t>(activeWaypointIndex));
+					glm::vec4 color = isActive
+						? glm::vec4(0.0f, 1.0f, 0.4f, 0.8f)  // Verde brillante para activo
+						: glm::vec4(0.2f, 0.5f, 1.0f, 0.6f); // Azul tenue para próximos
+					
+					waypointRenderer.drawWaypoint(view, projection, waypoints[i].position, color, isActive);
+				}
+			}
+			
+			glDisable(GL_BLEND);
+		}
 
 		// --- Renderizado 2D (HUD overlay) ---
 		// Solo mostrar HUD en primera persona (POV)
@@ -405,6 +454,59 @@ void processInput(GLFWwindow *window)
 		vKeyWasPressed = false;
 	}
 
+	// Waypoint system toggle (N key)
+	static bool nKeyWasPressed = false;
+	if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
+	{
+		if (!nKeyWasPressed)
+		{
+			waypointSystemEnabled = !waypointSystemEnabled;
+			std::cout << "Sistema de waypoints: "
+					  << (waypointSystemEnabled ? "ACTIVADO" : "DESACTIVADO") << std::endl;
+			nKeyWasPressed = true;
+		}
+	}
+	else
+	{
+		nKeyWasPressed = false;
+	}
+
+	// Next waypoint (M key) - Solo si no está completada la misión
+	static bool mKeyWasPressed = false;
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS)
+	{
+		if (!mKeyWasPressed && waypointSystemEnabled && !waypoints.empty() && !missionCompleted)
+		{
+			// Marcar el actual como capturado y avanzar
+			if (activeWaypointIndex < static_cast<int>(waypoints.size()))
+			{
+				waypoints[activeWaypointIndex].captured = true;
+				std::cout << "Waypoint " << waypoints[activeWaypointIndex].name << " saltado manualmente" << std::endl;
+			}
+			mKeyWasPressed = true;
+		}
+	}
+	else
+	{
+		mKeyWasPressed = false;
+	}
+
+	// Restart mission (R key)
+	static bool rKeyWasPressed = false;
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+	{
+		if (!rKeyWasPressed)
+		{
+			initializeWaypoints();
+			std::cout << "Misión reiniciada!" << std::endl;
+			rKeyWasPressed = true;
+		}
+	}
+	else
+	{
+		rKeyWasPressed = false;
+	}
+
 	// Movement - SPACE to move forward
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
@@ -420,4 +522,119 @@ void print_gl_version(void)
 
 	std::cout << "Renderer: " << renderer << std::endl;
 	std::cout << "OpenGL version supported: " << version << std::endl;
+}
+
+// ============================================================================
+// FUNCIONES DEL SISTEMA DE WAYPOINTS
+// ============================================================================
+
+void initializeWaypoints()
+{
+	waypoints.clear();
+	missionCompleted = false;
+	
+	// Circuito de waypoints ampliado para mejor maniobra (distancias ~1500-2000m)
+	waypoints.push_back({glm::vec3(1500.0f, 120.0f, 0.0f), "WPT-1", false});
+	waypoints.push_back({glm::vec3(1500.0f, 150.0f, -1500.0f), "WPT-2", false});
+	waypoints.push_back({glm::vec3(0.0f, 200.0f, -2000.0f), "WPT-3", false});
+	waypoints.push_back({glm::vec3(-1500.0f, 150.0f, -1500.0f), "WPT-4", false});
+	waypoints.push_back({glm::vec3(-1800.0f, 120.0f, 0.0f), "WPT-5", false});
+	waypoints.push_back({glm::vec3(0.0f, 100.0f, 0.0f), "HOME", false});
+	
+	activeWaypointIndex = 0;
+	waypointSystemEnabled = true;
+	
+	std::cout << "\n========================================" << std::endl;
+	std::cout << "      🎯 MISIÓN INICIADA 🎯" << std::endl;
+	std::cout << "========================================" << std::endl;
+	std::cout << "Waypoints: " << waypoints.size() << " cargados" << std::endl;
+	std::cout << "Objetivo: Pasar por todos los waypoints" << std::endl;
+	std::cout << "\nControles:" << std::endl;
+	std::cout << "  V - Cambiar vista POV/3ra persona" << std::endl;
+	std::cout << "  N - Activar/Desactivar waypoints" << std::endl;
+	std::cout << "  M - Saltar waypoint actual" << std::endl;
+	std::cout << "  R - Reiniciar misión" << std::endl;
+	std::cout << "========================================\n" << std::endl;
+}
+
+void updateWaypointData()
+{
+	if (!waypointSystemEnabled || waypoints.empty() || missionCompleted)
+	{
+		flightData.hasActiveWaypoint = false;
+		return;
+	}
+	
+	// Buscar el primer waypoint no capturado
+	int nextWaypointIndex = -1;
+	for (size_t i = 0; i < waypoints.size(); ++i)
+	{
+		if (!waypoints[i].captured)
+		{
+			nextWaypointIndex = i;
+			break;
+		}
+	}
+	
+	// Si no hay más waypoints, misión completada
+	if (nextWaypointIndex == -1)
+	{
+		if (!missionCompleted)
+		{
+			missionCompleted = true;
+			std::cout << "\n" << std::endl;
+			std::cout << "========================================" << std::endl;
+			std::cout << "   ✅ MISI\u00d3N COMPLETADA CON \u00c9XITO!   " << std::endl;
+			std::cout << "========================================" << std::endl;
+			std::cout << "Todos los waypoints han sido alcanzados." << std::endl;
+			std::cout << "\n" << std::endl;
+		}
+		flightData.hasActiveWaypoint = false;
+		return;
+	}
+	
+	activeWaypointIndex = nextWaypointIndex;
+	const Waypoint& currentWaypoint = waypoints[activeWaypointIndex];
+	flightData.targetWaypoint = currentWaypoint.position;
+	flightData.hasActiveWaypoint = true;
+	
+	// Calcular distancia
+	glm::vec3 toWaypoint = currentWaypoint.position - planePos;
+	flightData.waypointDistance = glm::length(toWaypoint);
+	
+	// Calcular bearing (rumbo al waypoint)
+	// Proyección en plano horizontal (XZ)
+	glm::vec2 toWaypointXZ = glm::vec2(toWaypoint.x, toWaypoint.z);
+	
+	if (glm::length(toWaypointXZ) > 0.01f)
+	{
+		// Calcular bearing: 0° = norte (-Z), sentido horario
+		float bearing = atan2(toWaypointXZ.x, -toWaypointXZ.y) * (180.0f / M_PI);
+		if (bearing < 0.0f) bearing += 360.0f;
+		flightData.waypointBearing = bearing;
+	}
+	
+	// Captura automática de waypoint (radio ampliado para waypoints más distantes)
+	const float WAYPOINT_CAPTURE_RADIUS = 80.0f;
+	if (flightData.waypointDistance < WAYPOINT_CAPTURE_RADIUS)
+	{
+		waypoints[activeWaypointIndex].captured = true;
+		
+		// Contar waypoints restantes
+		int remaining = 0;
+		for (const auto& wp : waypoints)
+		{
+			if (!wp.captured) remaining++;
+		}
+		
+		std::cout << "✓ Waypoint " << currentWaypoint.name << " alcanzado! ";
+		if (remaining > 0)
+		{
+			std::cout << "Waypoints restantes: " << remaining << std::endl;
+		}
+		else
+		{
+			std::cout << "\u00daltimo waypoint!" << std::endl;
+		}
+	}
 }

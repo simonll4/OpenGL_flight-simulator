@@ -3,13 +3,14 @@
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
-#include "../gfx/Renderer2D.h"
-#include "../flight/FlightData.h"
+#include "../../gfx/rendering/Renderer2D.h"
+#include "../../flight/FlightData.h"
 #include "Instrument.h"
 
 // Includes de instrumentos implementados
-#include "Altimeter.h"
-#include "SpeedIndicator.h"
+#include "../instruments/flight/Altimeter.h"
+#include "../instruments/flight/SpeedIndicator.h"
+#include "../instruments/navigation/WaypointIndicator.h"
 
 // TODO: Agregar includes de futuros instrumentos
 // #include "AttitudeIndicator.h"
@@ -70,6 +71,7 @@ namespace hud
         // Útil para configuración directa sin recorrer el vector
         Altimeter* altimeter_;
         SpeedIndicator* speedIndicator_;
+        WaypointIndicator* waypointIndicator_;
 
         // TODO: Agregar referencias a futuros instrumentos aquí
         // AttitudeIndicator* attitudeIndicator_;

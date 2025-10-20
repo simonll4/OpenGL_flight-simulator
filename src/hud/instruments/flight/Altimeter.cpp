@@ -1,5 +1,5 @@
 #include "Altimeter.h"
-#include "../gfx/TextRenderer.h"
+#include "../../../gfx/rendering/TextRenderer.h"
 #include <cmath>
 
 namespace hud

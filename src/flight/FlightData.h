@@ -42,10 +42,16 @@ namespace flight
         glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);
 
-        // “Feeling” de instrumentos (suavizados)
+        // "Feeling" de instrumentos (suavizados)
         float tauAttitude = 0.10f;        // s (pitch/roll/heading)
         float tauVelocity = 0.15f;        // s (velocity)
         float maxPlausibleSpeed = 300.0f; // m/s (anti-teleport)
+
+        // Sistema de Waypoints (navegación)
+        glm::vec3 targetWaypoint = glm::vec3(0.0f);  // Posición 3D del waypoint objetivo (metros)
+        bool hasActiveWaypoint = false;              // Flag indicando si hay waypoint activo
+        float waypointDistance = 0.0f;               // Distancia al waypoint (metros)
+        float waypointBearing = 0.0f;                // Rumbo hacia el waypoint (0-360°)
 
         // Deriva instrumentos desde cámara
         void updateFromCamera(const glm::vec3 &front,

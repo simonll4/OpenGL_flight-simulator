@@ -6,7 +6,7 @@ extern "C" {
 #include <glad/glad.h>
 }
 
-#include "../util/ImageAtlas.h"
+#include "../../util/ImageAtlas.h"
 
 namespace gfx {
 

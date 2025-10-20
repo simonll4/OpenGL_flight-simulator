@@ -1,5 +1,5 @@
-#include "gfx/Shader.h"
-#include "gfx/GLCheck.h"
+#include "Shader.h"
+#include "GLCheck.h"
 
 namespace gfx {
 

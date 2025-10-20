@@ -1,5 +1,5 @@
 #include "SpeedIndicator.h"
-#include <cmath>
+#include "../../../gfx/rendering/TextRenderer.h"
 
 namespace hud
 {

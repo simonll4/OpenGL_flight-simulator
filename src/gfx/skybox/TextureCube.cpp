@@ -1,5 +1,5 @@
 #include "TextureCube.h"
-#include "GLCheck.h"
+#include "../core/GLCheck.h"
 #include <iostream>
 #include <array>
 #include <stb/stb_image.h>

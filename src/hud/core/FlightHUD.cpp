@@ -42,7 +42,7 @@ namespace hud
     // CONSTRUCTOR
     // ============================================================================
 
-    FlightHUD::FlightHUD() : altimeter_(nullptr), speedIndicator_(nullptr), screenWidth_(1280), screenHeight_(720)
+    FlightHUD::FlightHUD() : altimeter_(nullptr), speedIndicator_(nullptr), waypointIndicator_(nullptr), screenWidth_(1280), screenHeight_(720)
     {
         // Crear el renderer 2D compartido
         renderer2D_ = std::make_unique<gfx::Renderer2D>();
@@ -63,6 +63,11 @@ namespace hud
         auto speedIndicator = std::make_unique<SpeedIndicator>();
         speedIndicator_ = speedIndicator.get();
         instruments_.push_back(std::move(speedIndicator));
+
+        // WaypointIndicator
+        auto waypointIndicator = std::make_unique<WaypointIndicator>();
+        waypointIndicator_ = waypointIndicator.get();
+        instruments_.push_back(std::move(waypointIndicator));
 
         // TODO: Agregar nuevos instrumentos aquí siguiendo el mismo patrón:
         // auto attitudeIndicator = std::make_unique<AttitudeIndicator>();
@@ -99,6 +104,7 @@ namespace hud
         std::cout << "Flight HUD initialized: " << screenWidth << "x" << screenHeight << std::endl;
         std::cout << "  - Altimeter: OK" << std::endl;
         std::cout << "  - SpeedIndicator: OK" << std::endl;
+        std::cout << "  - WaypointIndicator: OK" << std::endl;
         // TODO: Agregar logs para cada instrumento cuando se implementen
         // std::cout << "  - AttitudeIndicator: OK" << std::endl;
         // etc...
@@ -202,7 +208,7 @@ namespace hud
      */
     void FlightHUD::setupInstrumentLayout()
     {
-        // float centerX = screenWidth_ * 0.5f;   // Para futuros instrumentos centrados
+        float centerX = screenWidth_ * 0.5f;   // Para futuros instrumentos centrados
         float centerY = screenHeight_ * 0.5f;
 
         // ------------------------------------------------------------------------
@@ -264,6 +270,22 @@ namespace hud
         //     headingIndicator_.setPosition(glm::vec2(posX, posY));
         //     headingIndicator_.setSize(glm::vec2(WIDTH, HEIGHT));
         // }
+
+        // ------------------------------------------------------------------------
+        // WAYPOINT INDICATOR (Navegación) - CENTRO SUPERIOR (Estilo Profesional)
+        // ------------------------------------------------------------------------
+        {
+            const float WIDTH = 280.0f;   // Panel más ancho para info adicional
+            const float HEIGHT = 140.0f;  // Panel más compacto verticalmente
+            const float MARGIN_TOP = 20.0f;
+
+            float posX = centerX - WIDTH * 0.5f;  // Centrado horizontalmente
+            float posY = MARGIN_TOP;              // Parte superior
+
+            waypointIndicator_->setPosition(glm::vec2(posX, posY));
+            waypointIndicator_->setSize(glm::vec2(WIDTH, HEIGHT));
+            waypointIndicator_->setColor(hudColor_);
+        }
     }
 
 } // namespace hud

@@ -7,7 +7,7 @@ extern "C"
 #include <glad/glad.h>
 }
 
-#include "Shader.h"
+#include "../core/Shader.h"
 
 namespace gfx
 {
