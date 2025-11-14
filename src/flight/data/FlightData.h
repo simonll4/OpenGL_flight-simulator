@@ -1,4 +1,4 @@
-// flight/FlightData.h
+// flight/data/FlightData.h
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -34,24 +34,40 @@ namespace flight
         float verticalSpeed = 0.0f; // ft/min
 
         // Estado en mundo (m / m/s)
-        glm::vec3 position = glm::vec3(0.0f, 304.8f, 0.0f); // ≈ 1000 ft
+        glm::vec3 position = glm::vec3(0.0f, 304.8f, 0.0f);
         glm::vec3 velocity = glm::vec3(0.0f);
 
-        // Base de cámara ortonormal (derivada)
+        // Base de cámara ortonormal
         glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
         glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);
 
+        // Datos aerodinámicos (NUEVO)
+        float angleOfAttack = 0.0f;     // alpha [rad]
+        float sideslip = 0.0f;          // beta [rad]
+        float dynamicPressure = 0.0f;   // qbar [Pa]
+
+        // Velocidades angulares body frame (NUEVO)
+        float rollRate = 0.0f;          // p [rad/s]
+        float pitchRate = 0.0f;         // q [rad/s]
+        float yawRate = 0.0f;           // r [rad/s]
+
+        // Fuerzas (NUEVO)
+        float gForce = 1.0f;            // G-forces totales
+        float gForceNormal = 1.0f;      // G normal (vertical)
+        float gForceLateral = 0.0f;     // G lateral (horizontal)
+        float loadFactor = 1.0f;        // n = G / g
+
         // "Feeling" de instrumentos (suavizados)
-        float tauAttitude = 0.10f;        // s (pitch/roll/heading)
-        float tauVelocity = 0.15f;        // s (velocity)
-        float maxPlausibleSpeed = 300.0f; // m/s (anti-teleport)
+        float tauAttitude = 0.10f;
+        float tauVelocity = 0.15f;
+        float maxPlausibleSpeed = 300.0f;
 
         // Sistema de Waypoints (navegación)
-        glm::vec3 targetWaypoint = glm::vec3(0.0f);  // Posición 3D del waypoint objetivo (metros)
-        bool hasActiveWaypoint = false;              // Flag indicando si hay waypoint activo
-        float waypointDistance = 0.0f;               // Distancia al waypoint (metros)
-        float waypointBearing = 0.0f;                // Rumbo hacia el waypoint (0-360°)
+        glm::vec3 targetWaypoint = glm::vec3(0.0f);
+        bool hasActiveWaypoint = false;
+        float waypointDistance = 0.0f;
+        float waypointBearing = 0.0f;
 
         // Deriva instrumentos desde cámara
         void updateFromCamera(const glm::vec3 &front,

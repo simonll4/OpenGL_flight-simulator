@@ -1,6 +1,14 @@
 - https://sketchfab.com/3d-models/f-16-fighting-falcon-fighter-jet-free-f0b00989e5634764848ef2c235c64db5?utm_source=chatgpt.com (f16)
 - 
 
+## FDM (CGyAV) INTEGRADO
+- 2025-XX: el simulador ahora usa `flight::FdmSimulation` (copiado de CGyAV-dlfdm) como fuente única de física 6-DoF.
+- Controles: joystick virtual genera comandos normalizados [-1,1] y el throttle (UP/DOWN) mueve `throttleInput` en [0,1].
+- `flightData` ya viene en unidades HUD (ft/kt/fpm) directamente desde el FDM; updateWaypointData solo añade navegación.
+- `planePos/planeOrientation` salen del solver tras mapear de NED → mundo (+X=este, +Y=up, -Z=norte).
+- Estado inicial: trim S-211 a ~1500 m y ~150 m/s, listo para vuelo recto en el aire.
+
+
 
 
 

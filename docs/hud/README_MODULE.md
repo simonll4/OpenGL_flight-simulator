@@ -359,7 +359,7 @@ Desde cada ubicación, las rutas son:
 ### Desde `core/`:
 ```cpp
 #include "../../gfx/rendering/Renderer2D.h"
-#include "../../flight/FlightData.h"
+#include "../../flight/data/FlightData.h"
 ```
 
 ### Desde `instruments/flight/`:

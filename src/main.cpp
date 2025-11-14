@@ -26,12 +26,13 @@ extern "C"
 
 #include "gfx/skybox/SkyboxRenderer.h"
 #include "gfx/skybox/TextureCube.h"
-#include "gfx/terrain/TerrainRenderer.h"
+#include "gfx/terrain/ClipmapTerrain.h"
 #include "gfx/core/Shader.h"
 #include "gfx/geometry/Model.h"
 #include "gfx/WaypointRenderer.h"
 #include "hud/core/FlightHUD.h"
-#include "flight/FlightData.h"
+#include "flight/data/FlightData.h"
+#include "flight/dlfdm/FdmSimulation.h"
 
 // ============================================================================
 // CONSTANTES DE CONFIGURACIÓN
@@ -44,20 +45,52 @@ static const int kWindowHeight = 720;
 // ============================================================================
 // ESTADO DEL AVIÓN
 // ============================================================================
-glm::vec3 planePos(0.0f, 50.0f, 0.0f);
+glm::vec3 planePos(0.0f, 1500.0f, 0.0f); // Altura inicial sobre terreno montañoso
 glm::quat planeOrientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-float planeSpeed = 50.0f; // m/s
+float planeSpeed = 0.0f; // m/s calculados por el FDM
+float throttleInput = 0.32f;
+float filteredThrottle = throttleInput;
+flight::FdmSimulation gFdmSimulation;
+
+// ============================================================================
+// SISTEMA DE CONTROL VIRTUAL (Joystick simulado)
+// ============================================================================
+struct VirtualJoystick {
+    float aileron = 0.0f;  // Roll (-1 a 1)
+    float elevator = 0.0f; // Pitch (-1 a 1)
+    float rudder = 0.0f;   // Yaw (-1 a 1)
+};
+VirtualJoystick joystick;
+VirtualJoystick filteredJoystick;
+
+// Factores de control (velocidad de cambio del joystick virtual)
+const glm::vec3 CONTROL_FACTOR = glm::vec3(3.0f, 1.0f, 3.0f); // roll, yaw, pitch
+
+struct ControlResponseRates
+{
+    float roll;
+    float pitch;
+    float yaw;
+    float throttle;
+};
+
+constexpr ControlResponseRates kResponseRates{8.0f, 6.0f, 4.0f, 3.0f};
 
 // ============================================================================
 // ESTADO DE LA CÁMARA
 // ============================================================================
 glm::vec3 cameraPos;
+glm::vec3 cameraTargetPos;    // Posición objetivo para interpolación
+glm::quat cameraOrientation;  // Orientación actual de la cámara
+glm::quat cameraTargetOrient; // Orientación objetivo para interpolación
 glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
-float cameraDistance = 15.0f;
-float cameraPitch = 20.0f;
+float cameraDistance = 20.0f; // Distancia aumentada para mejor vista
+float cameraPitch = 15.0f;
 float cameraYaw = 0.0f;
+float cameraLerpSpeed = 5.0f; // Velocidad de interpolación de cámara
 bool firstPersonView = false; // false = 3ra persona, true = 1ra persona (POV)
+bool smoothCamera = true;      // Activar cámara suave por defecto
 
 // ============================================================================
 // TIMING
@@ -95,6 +128,11 @@ gfx::WaypointRenderer waypointRenderer;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
+void updateFlightPhysics(float dt);
+void updateCamera(float dt);
+float centerControl(float value, float factor, float dt);
+float moveControl(float value, float direction, float factor, float dt);
+float smoothControlTowards(float current, float target, float responseRate, float dt);
 void print_gl_version(void);
 void initializeWaypoints();
 void updateWaypointData();
@@ -161,11 +199,30 @@ int main()
 
 	gfx::TextureCube cubemap;		  // Textura del skybox (6 caras)
 	gfx::SkyboxRenderer skybox;		  // Renderizador del cielo
-	gfx::TerrainRenderer terrain;	  // Renderizador del terreno
-	gfx::TerrainParams terrainParams; // Parámetros del terreno
+	
+	// Configurar sistema de terreno Clipmap con texturas reales
+	gfx::ClipmapConfig clipmapConfig;
+	clipmapConfig.levels = 14;            // Muchos más niveles para volar alto
+	clipmapConfig.segments = 64;          // Alta resolución
+	clipmapConfig.segmentSize = 4.0f;     // Tamaño óptimo
+	clipmapConfig.heightScale = 3000.0f;  // Montañas reales (3km altura)
+	clipmapConfig.heightOffset = 0.0f;    // Sin offset
+	clipmapConfig.terrainSize = 200000.0f; // 200km x 200km
+	clipmapConfig.fogMinDist = 1000.0f;   // Fog inicial (se ajusta dinámicamente)
+	clipmapConfig.fogMaxDist = 100000.0f; // Fog inicial (se ajusta dinámicamente)
+	
+	gfx::ClipmapTerrain terrain(clipmapConfig); // Sistema de terreno con LOD
 	hud::FlightHUD flightHUD;		  // Sistema de HUD
 	gfx::Shader modelShader("shaders/model.vert", "shaders/model.frag");
 	Model f16Model("assets/models/f16.glb");
+
+	gFdmSimulation.initialize();
+	planePos = gFdmSimulation.getWorldPosition();
+	planeOrientation = gFdmSimulation.getWorldOrientation();
+	planeSpeed = gFdmSimulation.getTrueAirspeed();
+	flightData = gFdmSimulation.getFlightData();
+	filteredJoystick = joystick;
+	filteredThrottle = throttleInput;
 
 	globalHUD = &flightHUD; // Guardar puntero global para callbacks
 
@@ -184,16 +241,10 @@ int main()
 		skybox.init();
 		skybox.setCubemap(&cubemap);
 
-		// Terreno: generar mesh, cargar texturas
+		// Terreno Clipmap: inicializar y cargar texturas
 		terrain.init();
 		terrain.loadTextures("assets/textures/terrain");
-
-		// Configurar parámetros del terreno
-		terrainParams.groundY = 0.0f;		  // Nivel del piso
-		terrainParams.tileScaleMacro = 0.05f; // Escala textura principal
-		terrainParams.tileScaleDetail = 0.4f; // Escala textura de detalle
-		terrainParams.detailStrength = 0.3f;  // Mezcla de detalle (0-1)
-		terrainParams.fogDensity = 0.005f;	  // Niebla
+		std::cout << "Clipmap terrain system initialized\n";
 
 		// HUD: compilar shaders, inicializar altímetro
 		flightHUD.init(kWindowWidth, kWindowHeight);
@@ -202,6 +253,13 @@ int main()
 		// Waypoint System: inicializar renderizador y waypoints
 		waypointRenderer.init();
 		initializeWaypoints();
+
+		// Inicializar cámara en posición inicial
+		glm::vec3 forward = planeOrientation * glm::vec3(0, 0, -1);
+		glm::vec3 up = planeOrientation * glm::vec3(0, 1, 0);
+		cameraPos = planePos - forward * cameraDistance + up * (cameraDistance * 0.3f);
+		cameraFront = glm::normalize(planePos - cameraPos);
+		cameraUp = up;
 
 		std::cout << "✓ All systems initialized successfully!" << std::endl;
 	}
@@ -226,17 +284,8 @@ int main()
 		// --- Input ---
 		processInput(window);
 
-		// --- Actualización de lógica ---
-		// Mover el avión hacia adelante en la dirección que apunta
-		planePos += planeOrientation * glm::vec3(0, 0, -1) * planeSpeed * deltaTime;
-
-		// Actualizar datos de vuelo para el HUD
-		glm::vec3 euler = glm::eulerAngles(planeOrientation);
-		flightData.altitude = planePos.y;
-		flightData.airspeed = planeSpeed;
-		flightData.pitch = -glm::degrees(euler.x);
-		flightData.roll = glm::degrees(euler.z);
-		flightData.heading = glm::degrees(euler.y);
+		// --- Actualización de física de vuelo ---
+		updateFlightPhysics(deltaTime);
 
 		// Actualizar datos de waypoint
 		updateWaypointData();
@@ -259,32 +308,33 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// --- Actualizar cámara para seguir al avión ---
-		glm::vec3 forward = planeOrientation * glm::vec3(0, 0, -1);
-		glm::vec3 up = planeOrientation * glm::vec3(0, 1, 0);
-
-		glm::mat4 view;
-		if (firstPersonView)
-		{
-			// Primera persona (POV) - cámara dentro del cockpit
-			cameraPos = planePos + forward * 2.0f + up * 1.5f; // Adelante y arriba (cockpit)
-			view = glm::lookAt(cameraPos, cameraPos + forward, up);
-		}
-		else
-		{
-			// Tercera persona - cámara detrás del avión
-			cameraPos = planePos - forward * cameraDistance + up * 5.0f;
-			view = glm::lookAt(cameraPos, planePos, up);
-		}
+		updateCamera(deltaTime);
+		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		
+		// Far plane dinámico basado en altura: mientras más alto, más lejos se ve
+		float cameraHeight = cameraPos.y;
+		float dynamicFarPlane = std::max(5000.0f, cameraHeight * 20.0f); // Mínimo 5km, o 20x la altura
+		dynamicFarPlane = std::min(dynamicFarPlane, 500000.0f); // Máximo 500km
+		
 		glm::mat4 projection = glm::perspective(
 			glm::radians(45.0f),
 			(float)width / (float)height,
-			0.1f,	// Near plane
-			5000.0f // Far plane
+			0.1f,
+			dynamicFarPlane
 		);
 
 		// --- Renderizado 3D ---
 		skybox.draw(view, projection);
-		terrain.draw(view, projection, cameraPos, terrainParams);
+		
+		// Renderizar terreno Clipmap con fog dinámico
+		glm::vec3 backgroundColor(0.5f, 0.7f, 1.0f); // Azul cielo
+		
+		// Configurar fog dinámico basado en altura
+		gfx::ClipmapConfig* config = const_cast<gfx::ClipmapConfig*>(&clipmapConfig);
+		config->fogMinDist = cameraHeight * 0.5f;  // Fog empieza a 50% de la altura
+		config->fogMaxDist = dynamicFarPlane * 0.8f; // Fog completa al 80% del far plane
+		
+		terrain.draw(view, projection, cameraPos, backgroundColor);
 
 		// --- Render F-16 ---
 		modelShader.use();
@@ -395,48 +445,58 @@ void processInput(GLFWwindow *window)
 		glfwSetWindowShouldClose(window, true);
 	}
 
-	float rotSpeed = 1.5f * deltaTime;
-
-	// Pitch
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		planeOrientation = glm::angleAxis(rotSpeed, glm::vec3(1, 0, 0)) * planeOrientation;
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		planeOrientation = glm::angleAxis(-rotSpeed, glm::vec3(1, 0, 0)) * planeOrientation;
-	}
-	// Yaw
+	// === CONTROL GRADUAL ESTILO JOYSTICK ===
+	// Roll (A/D) – aceleramos/deceleramos el stick virtual en lugar de saltar a ±1
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		planeOrientation = glm::angleAxis(rotSpeed, glm::vec3(0, 1, 0)) * planeOrientation;
+		joystick.aileron = moveControl(joystick.aileron, -1.0f, CONTROL_FACTOR.x, deltaTime);
 	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		planeOrientation = glm::angleAxis(-rotSpeed, glm::vec3(0, 1, 0)) * planeOrientation;
+		joystick.aileron = moveControl(joystick.aileron, +1.0f, CONTROL_FACTOR.x, deltaTime);
 	}
-	// Roll
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+	else
 	{
-		planeOrientation = glm::angleAxis(rotSpeed, glm::vec3(0, 0, 1)) * planeOrientation;
-	}
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-	{
-		planeOrientation = glm::angleAxis(-rotSpeed, glm::vec3(0, 0, 1)) * planeOrientation;
+		joystick.aileron = centerControl(joystick.aileron, CONTROL_FACTOR.x, deltaTime);
 	}
 
-	// Speed
+	// Pitch (W/S)
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		joystick.elevator = moveControl(joystick.elevator, +1.0f, CONTROL_FACTOR.z, deltaTime);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		joystick.elevator = moveControl(joystick.elevator, -1.0f, CONTROL_FACTOR.z, deltaTime);
+	}
+	else
+	{
+		joystick.elevator = centerControl(joystick.elevator, CONTROL_FACTOR.z * 3.0f, deltaTime);
+	}
+
+	// Yaw (Q/E)
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		joystick.rudder = moveControl(joystick.rudder, +1.0f, CONTROL_FACTOR.y, deltaTime);
+	}
+	else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		joystick.rudder = moveControl(joystick.rudder, -1.0f, CONTROL_FACTOR.y, deltaTime);
+	}
+	else
+	{
+		joystick.rudder = centerControl(joystick.rudder, CONTROL_FACTOR.y, deltaTime);
+	}
+
+	// Throttle
+	const float kThrottleRate = 1.0f;
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
-		planeSpeed += 20.0f * deltaTime;
+		throttleInput = glm::clamp(throttleInput + kThrottleRate * deltaTime, 0.0f, 1.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 	{
-		planeSpeed -= 20.0f * deltaTime;
-	}
-	if (planeSpeed < 10.0f)
-	{
-		planeSpeed = 10.0f;
+		throttleInput = glm::clamp(throttleInput - kThrottleRate * deltaTime, 0.0f, 1.0f);
 	}
 
 	// Camera view toggle
@@ -507,13 +567,141 @@ void processInput(GLFWwindow *window)
 		rKeyWasPressed = false;
 	}
 
-	// Movement - SPACE to move forward
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	// Toggle smooth camera (C key)
+	static bool cKeyWasPressed = false;
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
 	{
-		// Movement is always active when SPACE is held
-		// The plane moves in the direction it's pointing
+		if (!cKeyWasPressed)
+		{
+			smoothCamera = !smoothCamera;
+			std::cout << "Cámara suave: " << (smoothCamera ? "ACTIVADA" : "DESACTIVADA") << std::endl;
+			cKeyWasPressed = true;
+		}
+	}
+	else
+	{
+		cKeyWasPressed = false;
+	}
+
+
+	// Adjust camera distance (Z/X keys)
+	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
+	{
+		cameraDistance = glm::clamp(cameraDistance - 10.0f * deltaTime, 10.0f, 50.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+	{
+		cameraDistance = glm::clamp(cameraDistance + 10.0f * deltaTime, 10.0f, 50.0f);
 	}
 }
+
+// ============================================================================
+// FUNCIONES DE CONTROL Y FÍSICA
+// ============================================================================
+
+// Centrar el control gradualmente (cuando no hay input)
+float centerControl(float value, float factor, float dt)
+{
+	if (value >= 0.0f)
+		return glm::clamp(value - factor * dt, 0.0f, 1.0f);
+	else
+		return glm::clamp(value + factor * dt, -1.0f, 0.0f);
+}
+
+// Mover el control hacia una dirección
+float moveControl(float value, float direction, float factor, float dt)
+{
+	return glm::clamp(value + direction * factor * dt, -1.0f, 1.0f);
+}
+
+float smoothControlTowards(float current, float target, float responseRate, float dt)
+{
+	if (responseRate <= 0.0f || dt <= 0.0f)
+	{
+		return target;
+	}
+
+	float alpha = 1.0f - std::exp(-responseRate * dt); // filtro exponencial continuo -> discreto
+	alpha = glm::clamp(alpha, 0.0f, 1.0f);
+	return glm::mix(current, target, alpha);
+}
+
+// Actualizar física de vuelo
+void updateFlightPhysics(float dt)
+{
+	// Filtrado exponencial: aproxima la respuesta dinámica del actuador frente a la entrada del usuario
+	filteredJoystick.aileron = smoothControlTowards(filteredJoystick.aileron, joystick.aileron, kResponseRates.roll, dt);
+	filteredJoystick.elevator = smoothControlTowards(filteredJoystick.elevator, joystick.elevator, kResponseRates.pitch, dt);
+	filteredJoystick.rudder = smoothControlTowards(filteredJoystick.rudder, joystick.rudder, kResponseRates.yaw, dt);
+	filteredThrottle = smoothControlTowards(filteredThrottle, throttleInput, kResponseRates.throttle, dt);
+
+	// Usamos los valores filtrados para alimentar el modelo FDM y evitar oscilaciones abruptas
+	gFdmSimulation.setNormalizedInputs(filteredJoystick.elevator,
+	                                   filteredJoystick.aileron,
+	                                   filteredJoystick.rudder,
+	                                   filteredThrottle);
+
+	gFdmSimulation.update(dt);
+
+	planePos = gFdmSimulation.getWorldPosition();
+	planeOrientation = gFdmSimulation.getWorldOrientation();
+	planeSpeed = gFdmSimulation.getTrueAirspeed();
+	flightData = gFdmSimulation.getFlightData();
+}
+
+// Actualizar cámara con interpolación suave
+void updateCamera(float dt)
+{
+	glm::vec3 forward = planeOrientation * glm::vec3(0, 0, -1);
+	glm::vec3 up = planeOrientation * glm::vec3(0, 1, 0);
+	
+	if (firstPersonView)
+	{
+		// Primera persona (POV) - cámara DENTRO del cockpit para que no se vea el avión
+		// Posicionada en el punto de vista del piloto
+		glm::vec3 targetPos = planePos + forward * 6.0f + up * 1.8f;
+		
+		if (smoothCamera)
+		{
+			// Interpolación rápida para primera persona (más responsiva)
+			float lerpFactor = glm::clamp(dt * cameraLerpSpeed * 2.0f, 0.0f, 1.0f);
+			cameraPos = glm::mix(cameraPos, targetPos, lerpFactor);
+		}
+		else
+		{
+			cameraPos = targetPos;
+		}
+		
+		cameraFront = forward;
+		cameraUp = up;
+	}
+		else
+		{
+			// Tercera persona - cámara cinemática detrás y arriba del avión
+			glm::vec3 targetPos = planePos - forward * cameraDistance + up * (cameraDistance * 0.4f);
+			
+			// Mirar un punto adelantado para mantener el avión centrado
+			glm::vec3 lookTarget = planePos + forward * 5.0f;
+			glm::vec3 targetFront = glm::normalize(lookTarget - targetPos);
+			
+			if (smoothCamera)
+			{
+				// Interpolación más suave para seguimiento cinematográfico
+				float speedFactor = glm::clamp(planeSpeed / 100.0f, 0.5f, 1.5f);
+				float lerpFactor = glm::clamp(dt * cameraLerpSpeed * speedFactor * 0.8f, 0.0f, 0.5f);
+				cameraPos = glm::mix(cameraPos, targetPos, lerpFactor);
+				
+				cameraFront = glm::normalize(glm::mix(cameraFront, targetFront, glm::clamp(lerpFactor * 1.5f, 0.0f, 1.0f)));
+			}
+			else
+			{
+				cameraPos = targetPos;
+				cameraFront = targetFront;
+			}
+			
+			cameraUp = up;
+		}
+	}
 
 void print_gl_version(void)
 {
@@ -533,13 +721,13 @@ void initializeWaypoints()
 	waypoints.clear();
 	missionCompleted = false;
 	
-	// Circuito de waypoints ampliado para mejor maniobra (distancias ~1500-2000m)
-	waypoints.push_back({glm::vec3(1500.0f, 120.0f, 0.0f), "WPT-1", false});
-	waypoints.push_back({glm::vec3(1500.0f, 150.0f, -1500.0f), "WPT-2", false});
-	waypoints.push_back({glm::vec3(0.0f, 200.0f, -2000.0f), "WPT-3", false});
-	waypoints.push_back({glm::vec3(-1500.0f, 150.0f, -1500.0f), "WPT-4", false});
-	waypoints.push_back({glm::vec3(-1800.0f, 120.0f, 0.0f), "WPT-5", false});
-	waypoints.push_back({glm::vec3(0.0f, 100.0f, 0.0f), "HOME", false});
+	// Circuito de waypoints a alturas seguras sobre terreno montañoso
+	waypoints.push_back({glm::vec3(1500.0f, 1200.0f, 0.0f), "WPT-1", false});
+	waypoints.push_back({glm::vec3(1500.0f, 1300.0f, -1500.0f), "WPT-2", false});
+	waypoints.push_back({glm::vec3(0.0f, 1500.0f, -2000.0f), "WPT-3", false});
+	waypoints.push_back({glm::vec3(-1500.0f, 1300.0f, -1500.0f), "WPT-4", false});
+	waypoints.push_back({glm::vec3(-1800.0f, 1200.0f, 0.0f), "WPT-5", false});
+	waypoints.push_back({glm::vec3(0.0f, 1500.0f, 0.0f), "HOME", false});
 	
 	activeWaypointIndex = 0;
 	waypointSystemEnabled = true;
@@ -549,11 +737,19 @@ void initializeWaypoints()
 	std::cout << "========================================" << std::endl;
 	std::cout << "Waypoints: " << waypoints.size() << " cargados" << std::endl;
 	std::cout << "Objetivo: Pasar por todos los waypoints" << std::endl;
-	std::cout << "\nControles:" << std::endl;
-	std::cout << "  V - Cambiar vista POV/3ra persona" << std::endl;
-	std::cout << "  N - Activar/Desactivar waypoints" << std::endl;
-	std::cout << "  M - Saltar waypoint actual" << std::endl;
-	std::cout << "  R - Reiniciar misión" << std::endl;
+	std::cout << "\nControles de Vuelo:" << std::endl;
+	std::cout << "  W/S       - Pitch (arriba/abajo)" << std::endl;
+	std::cout << "  A/D       - Roll (rodar izq/der)" << std::endl;
+	std::cout << "  Q/E       - Yaw (girar izq/der)" << std::endl;
+	std::cout << "  UP/DOWN   - Aumentar/reducir velocidad" << std::endl;
+	std::cout << "\nControles de Cámara:" << std::endl;
+	std::cout << "  V         - Cambiar vista POV/3ra persona" << std::endl;
+	std::cout << "  C         - Activar/Desactivar cámara suave" << std::endl;
+	std::cout << "  Z/X       - Alejar/Acercar cámara" << std::endl;
+	std::cout << "\nControles de Misión:" << std::endl;
+	std::cout << "  N         - Activar/Desactivar waypoints" << std::endl;
+	std::cout << "  M         - Saltar waypoint actual" << std::endl;
+	std::cout << "  R         - Reiniciar misión" << std::endl;
 	std::cout << "========================================\n" << std::endl;
 }
 

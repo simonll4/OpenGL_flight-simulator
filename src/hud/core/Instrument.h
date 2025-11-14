@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include "../../gfx/rendering/Renderer2D.h"
-#include "../../flight/FlightData.h"
+#include "../../flight/data/FlightData.h"
 
 namespace hud
 {
