@@ -5,6 +5,10 @@
 
 namespace gfx
 {
+    ////////////////////////////////////////////////////////////////////////////
+    //  Ciclo de vida
+    ////////////////////////////////////////////////////////////////////////////
+
     WaypointRenderer::~WaypointRenderer()
     {
         if (vao_)
@@ -17,10 +21,16 @@ namespace gfx
 
     void WaypointRenderer::init()
     {
-        // Cargar shaders desde archivos
+        // 1) Compilar shader especializado (colorea cilindros con pulsos emisivos).
         shader_.load("shaders/waypoint.vert", "shaders/waypoint.frag");
+
+        // 2) Construir la geometría estándar compartida por todos los waypoints.
         createCylinderGeometry();
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Geometría del cilindro
+    ////////////////////////////////////////////////////////////////////////////
 
     void WaypointRenderer::createCylinderGeometry()
     {
@@ -31,7 +41,7 @@ namespace gfx
         std::vector<float> vertices;
         std::vector<unsigned int> indices;
 
-        // Generar vértices del cilindro
+        // Generar vértices del cilindro (pares inferior/superior con normal).
         for (int i = 0; i <= segments; ++i)
         {
             float angle = (float)i / (float)segments * 2.0f * M_PI;
@@ -57,7 +67,7 @@ namespace gfx
             vertices.push_back(z / radius);
         }
 
-        // Generar índices
+        // Construir índices para cada quad lateral (2 triángulos por segmento).
         for (int i = 0; i < segments; ++i)
         {
             int base = i * 2;
@@ -73,7 +83,7 @@ namespace gfx
 
         indexCount_ = indices.size();
 
-        // Crear buffers
+        // Reservar buffers en GPU y subir datos.
         glGenVertexArrays(1, &vao_);
         glGenBuffers(1, &vbo_);
         glGenBuffers(1, &ebo_);
@@ -86,16 +96,20 @@ namespace gfx
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-        // Posición
+        // Attribute 0: posición (vec3)
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(0);
 
-        // Normal
+        // Attribute 1: normal (vec3)
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
         glBindVertexArray(0);
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Render
+    ////////////////////////////////////////////////////////////////////////////
 
     void WaypointRenderer::drawWaypoint(const glm::mat4 &view, const glm::mat4 &proj,
                                         const glm::vec3 &position, const glm::vec4 &color,
@@ -103,7 +117,7 @@ namespace gfx
     {
         shader_.use();
 
-        // Crear matriz de modelo
+        // Trasladar el cilindro unitario a la posición del waypoint.
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, position);
 
@@ -114,7 +128,8 @@ namespace gfx
         shader_.setFloat("waypointAlpha", color.a);
         shader_.setBool("isActive", isActive);
 
-        // Obtener viewPos desde la matriz view (inversa)
+        // El shader requiere la posición del observador para efectos especulares
+        // simples; se obtiene invirtiendo la matriz de vista.
         glm::mat4 viewInv = glm::inverse(view);
         glm::vec3 viewPos = glm::vec3(viewInv[3]);
         shader_.setVec3("viewPos", viewPos);

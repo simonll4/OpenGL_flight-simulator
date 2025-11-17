@@ -116,29 +116,30 @@ make -j4      # Compilar con 4 threads
 
 ```
 HUD/
-├── src/                    # Código fuente
-│   ├── main.cpp           # Punto de entrada
-│   ├── hud/               # Módulo HUD
-│   │   ├── core/          # Sistema base
-│   │   └── instruments/   # Instrumentos organizados
-│   ├── gfx/               # Sistema gráfico
-│   │   ├── core/          # Shaders y base
-│   │   ├── geometry/      # Modelos y meshes
-│   │   ├── rendering/     # Renderizado 2D/3D
-│   │   ├── terrain/       # Terreno procedural
-│   │   └── skybox/        # Sistema de cielo
-│   └── flight/            # Datos de vuelo
+├── src/
+│   ├── core/                 # Application + AppContext
+│   ├── crash/                # Señales y backtrace
+│   ├── flight/               # Datos y solver DLFDM
+│   │   ├── data/
+│   │   └── dlfdm/
+│   ├── gfx/                  # Renderizado 2D/3D (core, geometry, rendering, terrain, skybox)
+│   ├── hud/                  # FlightHUD + instrumentos (core, attitude, flight, navigation)
+│   ├── mission/              # Registry, runtime y persistencia
+│   ├── states/               # Menu / Planning / Flight
+│   ├── systems/              # CameraRig, FDM controller, WaypointSystem
+│   ├── ui/                   # Menú, planner, overlay, HUD manager
+│   └── util/                 # Helpers (atlas de cubemap, etc.)
 │
-├── shaders/               # Shaders GLSL
-├── assets/                # Recursos (modelos, texturas)
-├── docs/                  # Documentación completa
-│   ├── README.md         # Guía general y estructura del repo
-│   ├── architecture.md   # Detalle de módulos y flujo de datos
-│   ├── hud.md            # Instrumentos y HUD
-│   └── missions.md       # Misiones, planner y overlay
-├── build/                 # Ejecutable compilado
-└── include/              # Headers externos
-
+├── shaders/                  # Shaders GLSL
+├── assets/                   # Modelos, texturas, misiones JSON
+├── docs/                     # Documentación actual
+│   ├── README.md             # Guía general del proyecto
+│   ├── architecture.md       # Relación entre módulos
+│   ├── hud.md                # Instrumentos y flujo del HUD
+│   └── missions.md           # Planner, runtime y overlay
+├── include/                  # Headers externos (GLAD, stb, dlfdm)
+├── build/                    # Binarios y objetos generados
+└── menu_state.json           # Persistencia de selección de misión
 ```
 
 ---

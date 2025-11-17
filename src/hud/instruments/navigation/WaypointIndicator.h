@@ -13,8 +13,8 @@ namespace hud
      * - Rosa de los vientos fija con marcas cada 5° y 10°
      * - Etiquetas en los puntos cardinales (N, E, S, W)
      * - Números de rumbo cada 30° (000, 030, 060, etc.)
-         * - Flecha magenta indicando dirección al waypoint
-         * - Indicador vertical de diferencia de altura
+     * - Flecha magenta indicando dirección al waypoint
+     * - Indicador vertical de diferencia de altura
      *
      * El HSI combina la funcionalidad de una brújula con un indicador de navegación,
      * permitiendo al piloto visualizar simultáneamente el rumbo actual y la dirección
@@ -43,9 +43,9 @@ namespace hud
          */
         struct NavSnapshot
         {
-            float heading = 0.0f;           ///< Rumbo actual del avión (0-360°)
-            float relativeAngle = 0.0f;     ///< Ángulo relativo al waypoint (-180 a +180°)
-            float altitudeDifference = 0.0f;///< Diferencia de altura con el waypoint (metros)
+            float heading = 0.0f;            ///< Rumbo actual del avión (0-360°)
+            float relativeAngle = 0.0f;      ///< Ángulo relativo al waypoint (-180 a +180°)
+            float altitudeDifference = 0.0f; ///< Diferencia de altura con el waypoint (metros)
         };
 
         /**
@@ -56,8 +56,11 @@ namespace hud
         NavSnapshot buildNavSnapshot(const flight::FlightData &flightData) const;
 
         // Métodos de renderizado por componente
+        /// Dibuja la rosa de los vientos, las marcas y la flecha magenta.
         void drawCompassRose(gfx::Renderer2D &renderer, const NavSnapshot &nav);
+        /// Representa el indicador de diferencia de altitud (UP/DN/LVL).
         void drawVerticalIndicator(gfx::Renderer2D &renderer, const NavSnapshot &nav);
+        /// Mensaje "NO WAYPOINT" cuando no hay objetivo activo.
         void drawNoWaypointMessage(gfx::Renderer2D &renderer);
     };
 

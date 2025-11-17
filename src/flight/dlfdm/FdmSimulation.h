@@ -25,7 +25,8 @@ namespace flight
 
         void initialize();
 
-        struct StateValidation {
+        struct StateValidation
+        {
             bool isStalled = false;
             bool isSpinning = false;
             float stallMargin = 1.0f;
@@ -36,7 +37,7 @@ namespace flight
         void validatePhysicalState();
         StateValidation getStateValidation() const { return stateValidation_; }
 
-        void enableLogging(const std::string& filename);
+        void enableLogging(const std::string &filename);
         void disableLogging();
         bool isLoggingEnabled() const { return logFile_.is_open(); }
 

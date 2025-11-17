@@ -4,18 +4,18 @@
 
 namespace hud
 {
-    // ============================================================================
-    // CONFIGURACIÓN DE LA ESCALA DEL TAPE
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Configuración de la escala del tape
+    ////////////////////////////////////////////////////////////////////////////
 
     // Espaciado entre marcas de altitud
     static const float ALTITUDE_STEP = 100.0f;  // Marcas cada 100 pies
     static const float PIXELS_PER_STEP = 30.0f; // Separación vertical entre marcas
     static const int VISIBLE_MARKS = 12;        // Cuántas marcas mostrar arriba/abajo del centro
 
-    // ============================================================================
-    // CONFIGURACIÓN VISUAL DEL TAPE
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Configuración visual del tape
+    ////////////////////////////////////////////////////////////////////////////
 
     // Ticks (marcas laterales)
     static const float TICK_LENGTH = 16.0f;       // Longitud de las marcas horizontales
@@ -36,9 +36,9 @@ namespace hud
         color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
     }
 
-    // ============================================================================
-    // FUNCIÓN PRINCIPAL DE RENDERIZADO
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Función principal de renderizado
+    ////////////////////////////////////////////////////////////////////////////
 
     void Altimeter::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
     {
@@ -57,9 +57,9 @@ namespace hud
         // El altímetro no tiene fondo - solo dibujar elementos sobre el HUD transparente
     }
 
-    // ============================================================================
-    // RENDERIZADO DEL TAPE DE ALTITUD (ESCALA MÓVIL)
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Tape de altitud (escala móvil)
+    ////////////////////////////////////////////////////////////////////////////
 
     void Altimeter::drawAltitudeTape(gfx::Renderer2D &renderer, float altitude)
     {
@@ -103,9 +103,9 @@ namespace hud
         }
     }
 
-    // ============================================================================
-    // CAJA DE LECTURA DIGITAL (CENTRO)
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Caja de lectura digital
+    ////////////////////////////////////////////////////////////////////////////
 
     void Altimeter::drawCurrentAltitudeBox(gfx::Renderer2D &renderer, float altitude)
     {

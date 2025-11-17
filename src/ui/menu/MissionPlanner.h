@@ -30,188 +30,191 @@
 // Reenvío de la estructura GLFWwindow para no incluir GLFW en el header
 struct GLFWwindow;
 
-namespace ui {
-
-/**
- * @brief Estructura de resultados devueltos por el planificador
- *
- * Cuando el usuario interactúa con la interfaz, puede solicitar
- * iniciar la misión (startRequested) o cancelar y volver al menú
- * principal (cancelRequested). Estos flags son consumidos por el
- * bucle principal de la aplicación.
- */
-struct PlannerResult {
-    bool startRequested = false;
-    bool cancelRequested = false;
-};
-
-/**
- * @brief Planificador de misiones con edición gráfica de waypoints
- *
- * La clase MissionPlanner encapsula toda la lógica de la pantalla de
- * planificación. Utiliza un Renderer2D compartido para dibujar la
- * interfaz y un MissionDefinition como almacenamiento de la misión
- * actual en construcción. El usuario puede añadir, mover y eliminar
- * waypoints en el mapa, ajustar sus altitudes mediante comandos de
- * teclado y visualizar el perfil de altitud y la distancia total.
- */
-class MissionPlanner {
-public:
-    MissionPlanner();
+namespace ui
+{
 
     /**
-     * @brief Inicializa el planificador
-     * @param screenWidth Ancho de pantalla en píxeles
-     * @param screenHeight Alto de pantalla en píxeles
-     * @param sharedRenderer Puntero a un Renderer2D ya inicializado
-     */
-    void init(int screenWidth, int screenHeight, gfx::Renderer2D* sharedRenderer);
-
-    /**
-     * @brief Ajusta el tamaño de pantalla
+     * @brief Estructura de resultados devueltos por el planificador
      *
-     * Debe llamarse cuando la ventana se redimensiona para recalcular
-     * disposiciones y escalados.
+     * Cuando el usuario interactúa con la interfaz, puede solicitar
+     * iniciar la misión (startRequested) o cancelar y volver al menú
+     * principal (cancelRequested). Estos flags son consumidos por el
+     * bucle principal de la aplicación.
      */
-    void setScreenSize(int width, int height);
+    struct PlannerResult
+    {
+        bool startRequested = false;
+        bool cancelRequested = false;
+    };
 
     /**
-     * @brief Carga una misión existente para editar
-     * @param mission Definición de misión a editar
+     * @brief Planificador de misiones con edición gráfica de waypoints
      *
-     * Se copia la misión suministrada en el planificador y se calcula
-     * automáticamente el encuadre del mapa en base a la posición de
-     * salida y los waypoints existentes. También se reinician todos
-     * los estados de interacción.
+     * La clase MissionPlanner encapsula toda la lógica de la pantalla de
+     * planificación. Utiliza un Renderer2D compartido para dibujar la
+     * interfaz y un MissionDefinition como almacenamiento de la misión
+     * actual en construcción. El usuario puede añadir, mover y eliminar
+     * waypoints en el mapa, ajustar sus altitudes mediante comandos de
+     * teclado y visualizar el perfil de altitud y la distancia total.
      */
-    void loadMission(const mission::MissionDefinition& mission);
+    class MissionPlanner
+    {
+    public:
+        MissionPlanner();
 
-    /**
-     * @brief Actualiza el estado del planificador
-     * @param window Puntero a la ventana GLFW para leer entradas
-     * @param deltaTime Tiempo en segundos transcurrido desde el último frame
-     */
-    void update(GLFWwindow* window, float deltaTime);
+        /**
+         * @brief Inicializa el planificador
+         * @param screenWidth Ancho de pantalla en píxeles
+         * @param screenHeight Alto de pantalla en píxeles
+         * @param sharedRenderer Puntero a un Renderer2D ya inicializado
+         */
+        void init(int screenWidth, int screenHeight, gfx::Renderer2D *sharedRenderer);
 
-    /**
-     * @brief Dibuja la interfaz del planificador
-     */
-    void render();
+        /**
+         * @brief Ajusta el tamaño de pantalla
+         *
+         * Debe llamarse cuando la ventana se redimensiona para recalcular
+         * disposiciones y escalados.
+         */
+        void setScreenSize(int width, int height);
 
-    /**
-     * @brief Devuelve el estado de la interacción del planificador
-     */
-    PlannerResult getResult() const { return result_; }
+        /**
+         * @brief Carga una misión existente para editar
+         * @param mission Definición de misión a editar
+         *
+         * Se copia la misión suministrada en el planificador y se calcula
+         * automáticamente el encuadre del mapa en base a la posición de
+         * salida y los waypoints existentes. También se reinician todos
+         * los estados de interacción.
+         */
+        void loadMission(const mission::MissionDefinition &mission);
 
-    /**
-     * @brief Obtiene una referencia constante a la misión en edición
-     */
-    const mission::MissionDefinition& getMission() const { return workingMission_; }
+        /**
+         * @brief Actualiza el estado del planificador
+         * @param window Puntero a la ventana GLFW para leer entradas
+         * @param deltaTime Tiempo en segundos transcurrido desde el último frame
+         */
+        void update(GLFWwindow *window, float deltaTime);
 
-    /**
-     * @brief Restablece el planificador a un estado neutro
-     *
-     * Limpia los indicadores de inicio/cancelación y anula las
-     * interacciones en curso. No elimina ni altera los waypoints.
-     */
-    void reset();
+        /**
+         * @brief Dibuja la interfaz del planificador
+         */
+        void render();
 
-    // === Funcionalidades adicionales ===
-    /**
-     * @brief Genera un informe de la misión (no implementado)
-     */
-    void generateMissionReport();
+        /**
+         * @brief Devuelve el estado de la interacción del planificador
+         */
+        PlannerResult getResult() const { return result_; }
 
-    /**
-     * @brief Genera automáticamente un patrón de waypoints
-     * @param pattern Selección de patrón (0: cuadrado, 1: círculo, etc.)
-     */
-    void autoGenerateWaypoints(int pattern);
+        /**
+         * @brief Obtiene una referencia constante a la misión en edición
+         */
+        const mission::MissionDefinition &getMission() const { return workingMission_; }
 
-    /**
-     * @brief Valida si la misión cumple requisitos mínimos
-     * @return true si hay al menos un waypoint definido
-     */
-    bool validateMission() const;
+        /**
+         * @brief Restablece el planificador a un estado neutro
+         *
+         * Limpia los indicadores de inicio/cancelación y anula las
+         * interacciones en curso. No elimina ni altera los waypoints.
+         */
+        void reset();
 
-    /**
-     * @brief Guarda la misión en un archivo JSON (no implementado)
-     */
-    void saveMissionToFile(const std::string& path);
+        // === Funcionalidades adicionales ===
+        /**
+         * @brief Genera un informe de la misión (no implementado)
+         */
+        void generateMissionReport();
 
-    /**
-     * @brief Carga una misión desde un archivo JSON (no implementado)
-     */
-    void loadMissionFromFile(const std::string& path);
+        /**
+         * @brief Genera automáticamente un patrón de waypoints
+         * @param pattern Selección de patrón (0: cuadrado, 1: círculo, etc.)
+         */
+        void autoGenerateWaypoints(int pattern);
 
-private:
-    // === Métodos internos ===
-    void updateLayout();
-    void handleKeyboardInput(GLFWwindow* window, float deltaTime);
-    void handleMouseInput(GLFWwindow* window);
-    void updateStoryboardHover();
-    void renderBackground();
-    void renderToolbar();
-    void renderMap();
-    void renderProfile();
-    void renderStoryboard();
-    void renderInstructions();
-    void renderStartButton();
+        /**
+         * @brief Valida si la misión cumple requisitos mínimos
+         * @return true si hay al menos un waypoint definido
+         */
+        bool validateMission() const;
 
-    glm::vec2 mapWorldToScreen(const glm::vec3& world) const;
-    glm::vec3 mapScreenToWorld(const glm::vec2& screen) const;
-    int findWaypointNear(const glm::vec2& screen, float threshold) const;
-    size_t maxVisibleCards() const;
-    bool cardRect(size_t index, glm::vec2& pos, glm::vec2& size) const;
-    bool cursorInsideMap() const;
-    bool cursorInsideProfile() const;
-    bool cursorInsideStoryboard() const;
-    float computeMissionLength() const;
+        /**
+         * @brief Guarda la misión en un archivo JSON (no implementado)
+         */
+        void saveMissionToFile(const std::string &path);
 
-    // === Miembros ===
-    gfx::Renderer2D* renderer_ = nullptr;      ///< Renderizador 2D compartido
-    mission::MissionDefinition workingMission_; ///< Misión en construcción
-    PlannerResult result_;                      ///< Resultado de la última interacción
+        /**
+         * @brief Carga una misión desde un archivo JSON (no implementado)
+         */
+        void loadMissionFromFile(const std::string &path);
 
-    int screenWidth_ = 1280; ///< Ancho de pantalla actual
-    int screenHeight_ = 720; ///< Alto de pantalla actual
+    private:
+        // === Métodos internos ===
+        void updateLayout();
+        void handleKeyboardInput(GLFWwindow *window, float deltaTime);
+        void handleMouseInput(GLFWwindow *window);
+        void updateStoryboardHover();
+        void renderBackground();
+        void renderToolbar();
+        void renderMap();
+        void renderProfile();
+        void renderStoryboard();
+        void renderInstructions();
+        void renderStartButton();
 
-    // Rectángulos de la interfaz
-    glm::vec2 mapOrigin_ = glm::vec2(0.0f);
-    glm::vec2 mapSize_ = glm::vec2(1.0f);
-    glm::vec2 profileOrigin_ = glm::vec2(0.0f);
-    glm::vec2 profileSize_ = glm::vec2(1.0f);
-    glm::vec2 storyboardOrigin_ = glm::vec2(0.0f);
-    glm::vec2 storyboardSize_ = glm::vec2(1.0f);
-    glm::vec2 buttonPos_ = glm::vec2(0.0f);
-    glm::vec2 buttonSize_ = glm::vec2(220.0f, 56.0f);
-    glm::vec2 cursorPos_ = glm::vec2(0.0f);
+        glm::vec2 mapWorldToScreen(const glm::vec3 &world) const;
+        glm::vec3 mapScreenToWorld(const glm::vec2 &screen) const;
+        int findWaypointNear(const glm::vec2 &screen, float threshold) const;
+        size_t maxVisibleCards() const;
+        bool cardRect(size_t index, glm::vec2 &pos, glm::vec2 &size) const;
+        bool cursorInsideMap() const;
+        bool cursorInsideProfile() const;
+        bool cursorInsideStoryboard() const;
+        float computeMissionLength() const;
 
-    // Variables de navegación y escala
-    glm::vec2 mapCenter_ = glm::vec2(0.0f); ///< Punto central en el mundo representado en pantalla
-    float mapHalfExtent_ = 10000.0f;        ///< Extensión máxima visible en cada eje (metros)
-    float defaultAltitude_ = 1500.0f;       ///< Altitud predeterminada para nuevos waypoints
+        // === Miembros ===
+        gfx::Renderer2D *renderer_ = nullptr;       ///< Renderizador 2D compartido
+        mission::MissionDefinition workingMission_; ///< Misión en construcción
+        PlannerResult result_;                      ///< Resultado de la última interacción
 
-    int selectedIndex_ = -1; ///< Índice de waypoint seleccionado para edición
-    bool draggingXY_ = false; ///< Se está arrastrando un waypoint en el plano XZ
-    int draggingIndex_ = -1;   ///< Índice del waypoint que se arrastra
+        int screenWidth_ = 1280; ///< Ancho de pantalla actual
+        int screenHeight_ = 720; ///< Alto de pantalla actual
 
-    // Flags de estado de botones/teclas
-    bool leftMouseHeld_ = false;
-    bool rightMouseHeld_ = false;
-    bool enterHeld_ = false;
-    bool escHeld_ = false;
-    bool rHeld_ = false;
-    bool fHeld_ = false;
+        // Rectángulos de la interfaz
+        glm::vec2 mapOrigin_ = glm::vec2(0.0f);
+        glm::vec2 mapSize_ = glm::vec2(1.0f);
+        glm::vec2 profileOrigin_ = glm::vec2(0.0f);
+        glm::vec2 profileSize_ = glm::vec2(1.0f);
+        glm::vec2 storyboardOrigin_ = glm::vec2(0.0f);
+        glm::vec2 storyboardSize_ = glm::vec2(1.0f);
+        glm::vec2 buttonPos_ = glm::vec2(0.0f);
+        glm::vec2 buttonSize_ = glm::vec2(220.0f, 56.0f);
+        glm::vec2 cursorPos_ = glm::vec2(0.0f);
 
-    // Estados de hover y selección
-    bool startButtonHovered_ = false;
-    int hoveredCardIndex_ = -1;
+        // Variables de navegación y escala
+        glm::vec2 mapCenter_ = glm::vec2(0.0f); ///< Punto central en el mundo representado en pantalla
+        float mapHalfExtent_ = 10000.0f;        ///< Extensión máxima visible en cada eje (metros)
+        float defaultAltitude_ = 1500.0f;       ///< Altitud predeterminada para nuevos waypoints
 
-    // Cachés de renderizado
-    float cachedMissionLength_ = 0.0f;
-    float storyboardCardHeight_ = 90.0f;
-    float panSpeed_ = 200.0f; ///< Velocidad de paneo del mapa en metros/segundo
-};
+        int selectedIndex_ = -1;  ///< Índice de waypoint seleccionado para edición
+        bool draggingXY_ = false; ///< Se está arrastrando un waypoint en el plano XZ
+        int draggingIndex_ = -1;  ///< Índice del waypoint que se arrastra
+
+        // Flags de estado de botones/teclas
+        bool leftMouseHeld_ = false;
+        bool rightMouseHeld_ = false;
+        bool enterHeld_ = false;
+        bool escHeld_ = false;
+        bool rHeld_ = false;
+        bool fHeld_ = false;
+
+        // Estados de hover y selección
+        bool startButtonHovered_ = false;
+        int hoveredCardIndex_ = -1;
+
+        // Cachés de renderizado
+        float cachedMissionLength_ = 0.0f;
+        float storyboardCardHeight_ = 90.0f;
+        float panSpeed_ = 200.0f; ///< Velocidad de paneo del mapa en metros/segundo
+    };
 
 } // namespace ui

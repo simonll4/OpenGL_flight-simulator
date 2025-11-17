@@ -5,15 +5,11 @@ namespace hud
 {
     /**
      * @class SpeedIndicator
-     * @brief Indicador de velocidad del aire - tape vertical izquierdo
-     * 
-     * EJEMPLO de cómo heredar de Instrument y crear un nuevo instrumento.
-     * Este instrumento muestra la velocidad del aire similar al altímetro.
-     * 
-     * Hereda de Instrument y proporciona:
-     * - Tape vertical con escala de velocidad móvil
-     * - Caja de lectura digital central
-     * - Marcas cada 10 nudos con números cada 20 nudos
+     * @brief Tape vertical izquierdo que muestra velocidad indicada (IAS).
+     *
+     * Replica la ergonomía del altímetro: escala móvil, lectura digital centrada
+     * y chevron conector. La escala marca cada 10 nudos y enumera cada 20 para
+     * evitar saturación visual.
      */
     class SpeedIndicator : public Instrument
     {
@@ -28,7 +24,6 @@ namespace hud
         void render(gfx::Renderer2D &renderer, const flight::FlightData &flightData) override;
 
     private:
-        // Métodos específicos del indicador de velocidad
         void drawSpeedTape(gfx::Renderer2D &renderer, float airspeed);
         void drawCurrentSpeedBox(gfx::Renderer2D &renderer, float airspeed);
         void drawSpeedNumber(gfx::Renderer2D &renderer, int speed, const glm::vec2 &position);

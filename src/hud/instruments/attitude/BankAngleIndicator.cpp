@@ -7,7 +7,8 @@ namespace hud
 
     BankAngleIndicator::BankAngleIndicator() : Instrument()
     {
-        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
+        // Color base ligeramente más turquesa para destacar sobre el HUD
+        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f);
     }
 
     void BankAngleIndicator::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
@@ -15,15 +16,15 @@ namespace hud
         if (!enabled_)
             return;
 
-        // Normalizar ángulo de roll
+        // Normalizar ángulo de roll para evitar saltos cuando supera 360°/-360°
         float rollAngle = normalizeRoll(flightData.roll);
 
-        // Convertir posición NDC del centro a píxeles
+        // Convertir la posición del centro del instrumento desde NDC a píxeles
         glm::vec2 centerPx = ndcToPixels(0.0f, NDC_CENTER_Y);
         float centerX = centerPx.x;
         float centerY = centerPx.y;
 
-        // Calcular extremos de la línea base inclinada
+        // Calcular extremos de la línea base inclinada en función del viewport
         glm::vec2 leftPx = ndcToPixels(-NDC_LINE_WIDTH * 0.5f,
                                        NDC_CENTER_Y - NDC_LINE_SLOPE * NDC_LINE_WIDTH * 0.5f);
         glm::vec2 rightPx = ndcToPixels(NDC_LINE_WIDTH * 0.5f,
@@ -32,11 +33,11 @@ namespace hud
         // Dibujar componentes del indicador
         // Nota: No dibujamos la línea base para mantener el HUD limpio
         // drawBaseLine(renderer, centerX, centerY);
-        
+
         drawGraduations(renderer, centerX, centerY,
                         leftPx.x, leftPx.y, rightPx.x, rightPx.y,
                         rollAngle);
-        
+
         drawNeedle(renderer, centerX, centerY);
     }
 
@@ -52,10 +53,10 @@ namespace hud
     }
 
     void BankAngleIndicator::drawGraduations(gfx::Renderer2D &renderer, float centerX, float centerY,
-                                              float leftX, float leftY, float rightX, float rightY,
-                                              float rollAngle)
+                                             float leftX, float leftY, float rightX, float rightY,
+                                             float rollAngle)
     {
-        // Calcular índice de línea central basado en el ángulo de roll
+        // Índice de la marca alineada con el triángulo central
         int centerLineIndex = static_cast<int>(std::round(rollAngle / DEGREES_PER_LINE));
 
         // Dibujar solo 5 líneas: 2 a la izquierda, 1 central, 2 a la derecha
@@ -78,7 +79,7 @@ namespace hud
                 // Determinar altura de marca (mayor cada 30°, menor cada 10°)
                 bool isMajor = (i % 3 == 0);
                 float markHeightNDC = isMajor ? NDC_MARK_HEIGHT_MAJOR : NDC_MARK_HEIGHT_MINOR;
-                
+
                 // Convertir altura de NDC a píxeles (solo dimensión, no posición)
                 float markHeightPx = markHeightNDC * size_.y * 0.5f;
 
@@ -94,6 +95,7 @@ namespace hud
                     float textOffsetPx = textOffsetNDC * size_.y * 0.5f;
                     glm::vec2 textPos(lineX, lineY + markHeightPx * 0.5f + textOffsetPx);
 
+                    // Renderizar valor entero del ángulo usando el Renderer2D global
                     gfx::TextRenderer::drawString(
                         renderer,
                         std::to_string(static_cast<int>(lineAngle)),
@@ -112,7 +114,7 @@ namespace hud
 
     void BankAngleIndicator::drawNeedle(gfx::Renderer2D &renderer, float centerX, float centerY)
     {
-        // Calcular posición del triángulo (ligeramente abajo del centro)
+        // Colocar la aguja ligeramente por debajo del centro
         float needleOffsetPx = NDC_NEEDLE_OFFSET * size_.y * 0.5f;
         float needleY = centerY - needleOffsetPx;
 
@@ -120,7 +122,7 @@ namespace hud
         float triangleSizePx = NDC_TRIANGLE_SIZE * size_.y * 0.5f;
 
         // Vértices del triángulo apuntando hacia arriba
-        glm::vec2 tip(centerX, needleY + triangleSizePx);                           // Punta
+        glm::vec2 tip(centerX, needleY + triangleSizePx);                                      // Punta
         glm::vec2 baseLeft(centerX - triangleSizePx * 0.6f, needleY - triangleSizePx * 0.3f);  // Base izquierda
         glm::vec2 baseRight(centerX + triangleSizePx * 0.6f, needleY - triangleSizePx * 0.3f); // Base derecha
 

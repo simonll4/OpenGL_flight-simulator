@@ -13,14 +13,13 @@ namespace flight
     namespace
     {
         constexpr float kRadToDeg = 180.0f / glm::pi<float>();
-        constexpr float kMpsToKt = 1.94384449f;        // 1 m/s -> kt
-        constexpr float kMpsToFpm = 196.850394f;       // 1 m/s -> ft/min
-        constexpr float kMetersToFeet = 3.2808399f;    // 1 m -> ft
+        constexpr float kMpsToKt = 1.94384449f;     // 1 m/s -> kt
+        constexpr float kMpsToFpm = 196.850394f;    // 1 m/s -> ft/min
+        constexpr float kMetersToFeet = 3.2808399f; // 1 m -> ft
     }
 
     FdmSimulation::FdmSimulation()
-        : fixedTimeStep_(1.0f / 120.0f)
-        , accumulator_(0.0f)
+        : fixedTimeStep_(1.0f / 120.0f), accumulator_(0.0f)
     {
     }
 
@@ -66,24 +65,27 @@ namespace flight
         controls_.throttle = glm::clamp(throttle, 0.0f, 1.0f);
     }
 
-    void FdmSimulation::enableLogging(const std::string& filename)
+    void FdmSimulation::enableLogging(const std::string &filename)
     {
         logFile_.open(filename, std::ios::app);
-        if (logFile_.is_open()) {
+        if (logFile_.is_open())
+        {
             solver_->log_titles(logFile_);
         }
     }
 
     void FdmSimulation::disableLogging()
     {
-        if (logFile_.is_open()) {
+        if (logFile_.is_open())
+        {
             logFile_.close();
         }
     }
 
     void FdmSimulation::writeLogEntry()
     {
-        if (logFile_.is_open()) {
+        if (logFile_.is_open())
+        {
             solver_->log_state(logFile_);
         }
     }
@@ -100,11 +102,12 @@ namespace flight
         {
             validatePhysicalState();
             solver_->update(controls_);
-            
-            if (logFile_.is_open()) {
+
+            if (logFile_.is_open())
+            {
                 writeLogEntry();
             }
-            
+
             accumulator_ -= fixedTimeStep_;
         }
 
@@ -113,7 +116,8 @@ namespace flight
 
     void FdmSimulation::validatePhysicalState()
     {
-        if (!solver_) return;
+        if (!solver_)
+            return;
 
         const dlfdm::AircraftState &state = solver_->getState();
         float airspeed = glm::length(state.boby_velocity);
@@ -168,8 +172,8 @@ namespace flight
         const glm::vec3 euler = glm::eulerAngles(worldOrientation_);
         // Corrección de signos para orientación correcta
         // euler.x = +pitch físico, euler.z = -roll físico (debido a bodyToWorld swap)
-        cachedFlightData_.pitch = glm::degrees(euler.x);   // Sin inversión: +climb = +pitch
-        cachedFlightData_.roll = -glm::degrees(euler.z);   // Con inversión: +bank right = +roll
+        cachedFlightData_.pitch = glm::degrees(euler.x); // Sin inversión: +climb = +pitch
+        cachedFlightData_.roll = -glm::degrees(euler.z); // Con inversión: +bank right = +roll
 
         const glm::vec3 front = cachedFlightData_.cameraFront;
         float heading = glm::degrees(std::atan2(front.x, -front.z));
@@ -181,14 +185,14 @@ namespace flight
         cachedFlightData_.yaw = heading;
 
         // Datos aerodinámicos
-    cachedFlightData_.angleOfAttack = solver_->getAngleOfAttack();
-    cachedFlightData_.sideslip = solver_->getSideslip();
+        cachedFlightData_.angleOfAttack = solver_->getAngleOfAttack();
+        cachedFlightData_.sideslip = solver_->getSideslip();
         cachedFlightData_.dynamicPressure = solver_->getDynamicPressure();
 
         // Velocidades angulares
-    cachedFlightData_.rollRate = state.body_omega.x;
-    cachedFlightData_.pitchRate = state.body_omega.y;
-    cachedFlightData_.yawRate = state.body_omega.z;
+        cachedFlightData_.rollRate = state.body_omega.x;
+        cachedFlightData_.pitchRate = state.body_omega.y;
+        cachedFlightData_.yawRate = state.body_omega.z;
 
         // G-forces
         cachedFlightData_.gForce = solver_->getGForce();

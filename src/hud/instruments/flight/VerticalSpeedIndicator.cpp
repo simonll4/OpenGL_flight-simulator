@@ -10,17 +10,17 @@ namespace hud
     // ============================================================================
 
     // Dimensiones de la escala (compacta y profesional)
-    static const float SCALE_WIDTH = 54.0f;        // Ancho de la escala vertical
-    static const float SCALE_HEIGHT = 225.0f;      // Altura total de la escala (50% de tapes)
-    static const float TICK_LENGTH = 8.0f;         // Longitud de las marcas laterales (reducida)
-    static const float MAJOR_TICK_LENGTH = 12.0f;  // Marcas principales (0, ±20, ±40, ±60)
+    static const float SCALE_WIDTH = 54.0f;       // Ancho de la escala vertical
+    static const float SCALE_HEIGHT = 225.0f;     // Altura total de la escala (50% de tapes)
+    static const float TICK_LENGTH = 8.0f;        // Longitud de las marcas laterales (reducida)
+    static const float MAJOR_TICK_LENGTH = 12.0f; // Marcas principales (0, ±20, ±40, ±60)
 
     // Indicador triangular (compacto)
     static const float INDICATOR_WIDTH = 10.0f;
     static const float INDICATOR_HEIGHT = 8.0f;
 
     // Caja de lectura digital (consistente con otros instrumentos)
-    static const float READOUT_BOX_WIDTH = 48.0f;   // Más estrecha (números más cortos)
+    static const float READOUT_BOX_WIDTH = 48.0f; // Más estrecha (números más cortos)
     static const float READOUT_BOX_HEIGHT = 24.0f;
 
     VerticalSpeedIndicator::VerticalSpeedIndicator() : Instrument()
@@ -94,7 +94,7 @@ namespace hud
                 // Formatear número en formato estándar militar: ft/min / 100
                 // Ejemplo: 4000 ft/min → "+40"
                 int displayValue = static_cast<int>(vsi / DISPLAY_SCALE);
-                
+
                 std::string label;
                 if (displayValue == 0)
                 {
@@ -164,7 +164,7 @@ namespace hud
         float centerY = position_.y + size_.y * 0.5f;
 
         // Alinear la caja digital con la línea de 0 y a la IZQUIERDA de la escala
-        float lineX = centerX + 5.0f; // Debe coincidir con drawScale
+        float lineX = centerX + 5.0f;                  // Debe coincidir con drawScale
         float boxX = lineX - 6.0f - READOUT_BOX_WIDTH; // Separación mínima de la escala
         float boxY = centerY - READOUT_BOX_HEIGHT * 0.5f;
 
@@ -186,7 +186,7 @@ namespace hud
         // Ejemplo: -1200 ft/min → "-12"
         // Ejemplo: +500 ft/min → "+5"
         int displayValue = static_cast<int>(std::round(verticalSpeed / DISPLAY_SCALE));
-        
+
         std::string vsiText;
         if (displayValue == 0)
         {
@@ -200,7 +200,7 @@ namespace hud
 
         // Dibujar número centrado en la caja (consistente con otros instrumentos)
         glm::vec2 textPos = glm::vec2(boxX + READOUT_BOX_WIDTH * 0.5f, centerY);
-        gfx::TextRenderer::drawString(renderer, vsiText, textPos, 
+        gfx::TextRenderer::drawString(renderer, vsiText, textPos,
                                       glm::vec2(6.0f, 10.0f), color_, 8.0f);
     }
 

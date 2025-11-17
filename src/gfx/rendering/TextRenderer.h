@@ -7,11 +7,11 @@ namespace gfx
 {
     /**
      * @class TextRenderer
-     * @brief Utilidad para renderizar texto usando un estilo de 7 segmentos.
+     * @brief Utilidad estática para texto estilo display de 7 segmentos.
      *
-     * Esta clase proporciona métodos estáticos para dibujar caracteres y cadenas
-     * de texto en la pantalla, utilizando un Renderer2D para las operaciones
-     * de dibujo de bajo nivel.
+     * Se apoya en `Renderer2D` para dibujar bloques rectangulares que simulan
+     * segmentos encendidos. Toda la lógica es stateless: la posición y tamaño
+     * quedan definidos por los parámetros en cada llamada.
      */
     class TextRenderer
     {

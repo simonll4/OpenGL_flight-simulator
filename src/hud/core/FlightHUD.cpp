@@ -49,8 +49,10 @@ namespace hud
         // Crear el renderer 2D compartido
         renderer2D_ = std::make_unique<gfx::Renderer2D>();
 
-        // CONFIGURAR ESQUEMA DE COLORES DEL HUD
+        // Esquema cromático base (se puede expandir con configuraciones de usuario).
         hudColor_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
+        warningColor_ = glm::vec4(1.0f, 0.85f, 0.2f, 0.95f);
+        dangerColor_ = glm::vec4(1.0f, 0.2f, 0.2f, 0.95f);
 
         // CREAR E INICIALIZAR INSTRUMENTOS
         // Los instrumentos se crean como unique_ptr y se almacenan en el vector
@@ -85,8 +87,6 @@ namespace hud
         auto pitchLadder = std::make_unique<PitchLadder>();
         pitchLadder_ = pitchLadder.get();
         instruments_.push_back(std::move(pitchLadder));
-
-        // TODO: Agregar nuevos instrumentos aquí siguiendo el mismo patrón
     }
 
     // ============================================================================
@@ -108,7 +108,7 @@ namespace hud
         screenWidth_ = screenWidth;
         screenHeight_ = screenHeight;
 
-        // Inicializar el renderer 2D
+        // Inicializar el renderer 2D compartido (proyección ortográfica HUD).
         renderer2D_->init(screenWidth, screenHeight);
 
         // Configurar layout de todos los instrumentos
@@ -122,8 +122,6 @@ namespace hud
         std::cout << "  - WaypointIndicator (HSI): OK" << std::endl;
         std::cout << "  - BankAngleIndicator: OK" << std::endl;
         std::cout << "  - PitchLadder: OK" << std::endl;
-        // TODO: Agregar logs para futuros instrumentos
-        // std::cout << "  - HeadingIndicator: OK" << std::endl;
     }
 
     /**
@@ -153,8 +151,6 @@ namespace hud
     void FlightHUD::update(const flight::FlightData &flightData)
     {
         currentFlightData_ = flightData;
-
-        // TODO: Si algún instrumento necesita pre-procesamiento, hacerlo aquí
     }
 
     /**
@@ -215,8 +211,6 @@ namespace hud
     {
         // Reconfigurar todos los instrumentos según el layout seleccionado
         setupInstrumentLayout();
-
-        // TODO: En el futuro, diferentes layouts pueden tener diferentes posiciones
     }
 
     /**
@@ -224,7 +218,7 @@ namespace hud
      */
     void FlightHUD::setupInstrumentLayout()
     {
-        float centerX = screenWidth_ * 0.5f;   // Para futuros instrumentos centrados
+        float centerX = screenWidth_ * 0.5f; // Para futuros instrumentos centrados
         float centerY = screenHeight_ * 0.5f;
 
         // ------------------------------------------------------------------------
@@ -241,7 +235,7 @@ namespace hud
             speedIndicator_->setPosition(glm::vec2(posX, posY));
             speedIndicator_->setSize(glm::vec2(WIDTH, HEIGHT));
             speedIndicator_->setColor(hudColor_);
-            speedIndicator_->setEnabled(true); // TODO: Habilitar cuando se implemente
+            speedIndicator_->setEnabled(true);
         }
 
         // ------------------------------------------------------------------------
@@ -258,26 +252,28 @@ namespace hud
             altimeter_->setPosition(glm::vec2(posX, posY));
             altimeter_->setSize(glm::vec2(WIDTH, HEIGHT));
             altimeter_->setColor(hudColor_);
+            altimeter_->setEnabled(true);
         }
 
         // ------------------------------------------------------------------------
         // VERTICAL SPEED INDICATOR (VSI) - ENTRE CENTRO Y ALTÍMETRO
         // ------------------------------------------------------------------------
         {
-            const float WIDTH = 80.0f;    // Más estrecho que los tapes principales
-            const float HEIGHT = 225.0f;  // 50% de altura de los tapes principales
+            const float WIDTH = 80.0f;            // Más estrecho que los tapes principales
+            const float HEIGHT = 225.0f;          // 50% de altura de los tapes principales
             const float GAP_TO_ALTIMETER = 20.0f; // Separación mínima recomendada
             const float GAP_TO_FPV = 12.0f;       // Separación mínima respecto al eje central
 
             // Recalcular posición del altímetro (coincidir con bloque anterior)
             const float ALT_WIDTH = 120.0f;
-            const float ALT_HEIGHT = 450.0f; (void)ALT_HEIGHT;
+            const float ALT_HEIGHT = 450.0f;
+            (void)ALT_HEIGHT;
             const float ALT_MARGIN_RIGHT = 30.0f;
             float altPosX = screenWidth_ - ALT_WIDTH - ALT_MARGIN_RIGHT;
 
             // Posición ideal: a la izquierda del altímetro, separado fijo
             float desiredRight = altPosX - GAP_TO_ALTIMETER; // borde derecho del VSI
-            float posX = desiredRight - WIDTH;                // borde izquierdo del VSI
+            float posX = desiredRight - WIDTH;               // borde izquierdo del VSI
 
             // Asegurar separación mínima desde el eje central (FPV)
             float minPosX = centerX + GAP_TO_FPV;
@@ -293,37 +289,10 @@ namespace hud
         }
 
         // ------------------------------------------------------------------------
-        // TODO: ATTITUDE INDICATOR (Horizonte Artificial) - CENTRO
-        // ------------------------------------------------------------------------
-        // {
-        //     const float SIZE = 300.0f;  // Cuadrado
-        //     float posX = centerX - SIZE * 0.5f;
-        //     float posY = centerY - SIZE * 0.5f;
-        //
-        //     attitudeIndicator_->setPosition(glm::vec2(posX, posY));
-        //     attitudeIndicator_->setSize(glm::vec2(SIZE, SIZE));
-        // }
-
-        // ------------------------------------------------------------------------
-        // TODO: HEADING INDICATOR (Rumbo) - ARRIBA/CENTRO
-        // ------------------------------------------------------------------------
-        // {
-        //     const float WIDTH = 400.0f;
-        //     const float HEIGHT = 60.0f;
-        //     const float MARGIN_TOP = 30.0f;
-        //
-        //     float posX = centerX - WIDTH * 0.5f;
-        //     float posY = MARGIN_TOP;
-        //
-        //     headingIndicator_.setPosition(glm::vec2(posX, posY));
-        //     headingIndicator_.setSize(glm::vec2(WIDTH, HEIGHT));
-        // }
-
-        // ------------------------------------------------------------------------
         // WAYPOINT INDICATOR (Navegación) - CENTRO SUPERIOR
         // ------------------------------------------------------------------------
         {
-            const float PANEL_WIDTH = 159.0f;   // Bounding box actual de la rosa
+            const float PANEL_WIDTH = 159.0f; // Bounding box actual de la rosa
             const float PANEL_HEIGHT = 134.0f;
             const float COMPASS_CENTER_OFFSET_X = 92.0f; // 12 + 25 + 55
             const float COMPASS_CENTER_OFFSET_Y = 67.0f; // 12 + 55
@@ -365,6 +334,5 @@ namespace hud
             bankAngleIndicator_->setEnabled(true);
         }
     }
-
 
 } // namespace hud

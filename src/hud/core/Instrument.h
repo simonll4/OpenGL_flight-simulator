@@ -11,9 +11,9 @@ namespace hud
      *
      * Esta clase define la interfaz común para todos los instrumentos de vuelo.
      * Proporciona:
-     * - Propiedades comunes (posición, tamaño, color)
-     * - Métodos de configuración (setters)
-     * - Interfaz de renderizado (método virtual puro)
+     * - Propiedades comunes (posición, tamaño, color) expresadas en píxeles relativos al viewport del HUD
+     * - Métodos de configuración (setters) para integrarse con los layouts calculados por FlightHUD
+     * - Interfaz de renderizado (método virtual puro) que recibe el Renderer2D y los datos de vuelo ya actualizados
      *
      * Cada instrumento específico (Altimeter, AttitudeIndicator, etc.)
      * debe heredar de esta clase e implementar su propio método render().
@@ -39,24 +39,36 @@ namespace hud
         /**
          * @brief Establece la posición del instrumento en coordenadas de pantalla
          * @param position Posición (x, y) de la esquina superior izquierda
+         *
+         * La posición equivale al origen local que usa cada instrumento para convertir
+         * coordenadas Normalized Device Coordinates (NDC) a píxeles.
          */
         void setPosition(const glm::vec2 &position) { position_ = position; }
 
         /**
          * @brief Establece el tamaño del instrumento
          * @param size Dimensiones (ancho, alto) del instrumento
+         *
+         * Los instrumentos usan este tamaño para escalar geometría proporcionalmente
+         * y mantener una apariencia consistente en cualquier resolución.
          */
         void setSize(const glm::vec2 &size) { size_ = size; }
 
         /**
          * @brief Establece el color principal del instrumento
          * @param color Color RGBA (valores entre 0.0 y 1.0)
+         *
+         * Normalmente se usa un verde translúcido para imitar HUD reales, pero la
+         * propiedad permite variaciones para estados especiales o temas alternos.
          */
         void setColor(const glm::vec4 &color) { color_ = color; }
 
         /**
          * @brief Habilita o deshabilita la visualización del instrumento
          * @param enabled true para mostrar, false para ocultar
+         *
+         * FlightHUD usa este flag para no invocar render() cuando un módulo está
+         * configurado como opcional o temporalmente indisponible.
          */
         void setEnabled(bool enabled) { enabled_ = enabled; }
 

@@ -10,59 +10,88 @@
 
 struct GLFWwindow;
 
-namespace mission {
-class MissionRegistry;
-class MissionDefinition;
-class MissionRuntime;
+namespace mission
+{
+    class MissionRegistry;
+    class MissionDefinition;
+    class MissionRuntime;
 }
 
-namespace ui {
+namespace ui
+{
 
-class UIManager {
-public:
-    UIManager();
-    ~UIManager();
+    /**
+     * @class UIManager
+     * @brief Punto de orquestación para todos los paneles de UI del simulador.
+     *
+     * Encapsula la creación, ciclo de vida y comunicación entre:
+     * - HUD principal (FlightHUD)
+     * - Menú de selección de misión
+     * - Planificador de rutas (MissionPlanner)
+     * - Overlay in-game (briefing/completion)
+     *
+     * Expone métodos de actualización/render separados por subsistema para que cada
+     * estado del juego invoque sólo lo que necesita.
+     */
+    class UIManager
+    {
+    public:
+        UIManager();
+        ~UIManager();
 
-    bool initialize(int width, int height, mission::MissionRegistry* registry);
-    void resize(int width, int height);
+        /**
+         * @brief Inicializa HUD y paneles con dimensiones iniciales y acceso al catálogo de misiones.
+         */
+        bool initialize(int width, int height, mission::MissionRegistry *registry);
 
-    void updateMenu(GLFWwindow* window, float dt);
-    void renderMenu();
-    ui::MenuResult getMenuResult() const;
-    void resetMenu();
-    void preselectMission(int index);
+        /**
+         * @brief Recalcula layouts cuando cambia el tamaño de la ventana principal.
+         */
+        void resize(int width, int height);
 
-    void updatePlanner(GLFWwindow* window, float dt);
-    void renderPlanner();
-    ui::PlannerResult getPlannerResult() const;
-    void resetPlanner();
-    void loadPlannerMission(const mission::MissionDefinition& mission);
-    mission::MissionDefinition getPlannerMission() const;
+        // ============================ MENÚ PRINCIPAL ============================
+        void updateMenu(GLFWwindow *window, float dt);
+        void renderMenu();
+        ui::MenuResult getMenuResult() const;
+        void resetMenu();
+        void preselectMission(int index);
 
-    void updateOverlay(float dt);
-    bool handleOverlayInput(GLFWwindow* window);
-    bool isOverlayVisible() const;
-    bool overlayReadyToFly() const;
-    ui::CompletionChoice overlayChoice() const;
-    void showBriefing(const mission::MissionDefinition& mission);
-    void showCompletionPrompt(const mission::MissionRuntime& runtime);
-    void hideOverlay();
-    void resetOverlay();
-    void renderOverlay();
+        // ============================ PLANIFICADOR ==============================
+        void updatePlanner(GLFWwindow *window, float dt);
+        void renderPlanner();
+        ui::PlannerResult getPlannerResult() const;
+        void resetPlanner();
+        void loadPlannerMission(const mission::MissionDefinition &mission);
+        mission::MissionDefinition getPlannerMission() const;
 
-    hud::FlightHUD& hud() { return *hud_; }
-    void updateHUD(const flight::FlightData& data);
-    void renderHUD();
+        // ============================== OVERLAY =================================
+        void updateOverlay(float dt);
+        bool handleOverlayInput(GLFWwindow *window);
+        bool isOverlayVisible() const;
+        bool overlayReadyToFly() const;
+        ui::CompletionChoice overlayChoice() const;
+        void showBriefing(const mission::MissionDefinition &mission);
+        void showCompletionPrompt(const mission::MissionRuntime &runtime);
+        void hideOverlay();
+        void resetOverlay();
+        void renderOverlay();
 
-private:
-    std::unique_ptr<hud::FlightHUD> hud_;
-    std::unique_ptr<ui::MissionMenu> menu_;
-    std::unique_ptr<ui::MissionPlanner> planner_;
-    std::unique_ptr<ui::MissionOverlay> overlay_;
+        // ============================== HUD =====================================
+        hud::FlightHUD &hud() { return *hud_; }
+        void updateHUD(const flight::FlightData &data);
+        void renderHUD();
 
-    mission::MissionRegistry* registry_ = nullptr;
-    int screenWidth_ = 1280;
-    int screenHeight_ = 720;
-};
+    private:
+        // Objetos propietarios de cada capa de interfaz
+        std::unique_ptr<hud::FlightHUD> hud_;
+        std::unique_ptr<ui::MissionMenu> menu_;
+        std::unique_ptr<ui::MissionPlanner> planner_;
+        std::unique_ptr<ui::MissionOverlay> overlay_;
+
+        // Dependencias externas y parámetros de layout
+        mission::MissionRegistry *registry_ = nullptr;
+        int screenWidth_ = 1280;
+        int screenHeight_ = 720;
+    };
 
 } // namespace ui

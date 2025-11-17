@@ -4,12 +4,16 @@
 namespace gfx
 {
 
-    // ejemplo de uso:
-    // gfx::TextRenderer::drawString(renderer, "123", glm::vec2(200, 100), glm::vec2(8, 12), glm::vec4(1,1,1,1), 10);
-    // dibuja "123" centrado en (200,100) con caracteres de 8x12 píxeles y espaciado de 10 píxeles
+    ////////////////////////////////////////////////////////////////////////////
+    //  API pública
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Ejemplo rápido:
+    // gfx::TextRenderer::drawString(renderer, "123", {200, 100}, {8, 12}, {1,1,1,1}, 10);
+    // Dibuja "123" centrado en (200,100) con caracteres de 8x12 px, avance horizontal 10.
     void TextRenderer::drawString(Renderer2D &renderer, const std::string &text, const glm::vec2 &position, const glm::vec2 &charSize, const glm::vec4 &color, float spacing)
     {
-        // Centrar el string completo horizontalmente
+        // Centrar el string completo horizontalmente (alineación midpoint).
         float totalWidth = text.length() * spacing - (spacing - charSize.x);
         float startX = position.x - totalWidth * 0.5f;
 
@@ -18,15 +22,19 @@ namespace gfx
         {
             char character = text[i];
 
-            // Posición del dígito con pixel snapping
+            // Posición del dígito con pixel snapping para evitar blur en HUD.
             float charX = floor(startX + i * spacing) + 0.5f;
             float charY = floor(position.y - charSize.y * 0.5f) + 0.5f;
             glm::vec2 charPos = glm::vec2(charX, charY);
 
-            // Renderizar 7-segmentos
+            // Renderizar 7 segmentos según la tabla predefinida.
             drawChar7Segment(renderer, character, charPos, charSize, color);
         }
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Helper interno: 7 segmentos
+    ////////////////////////////////////////////////////////////////////////////
 
     void TextRenderer::drawChar7Segment(Renderer2D &renderer, char character, const glm::vec2 &pos, const glm::vec2 &size, const glm::vec4 &color)
     {
@@ -35,7 +43,7 @@ namespace gfx
         const float thickness = 1.5f; // Grosor del segmento
         const float halfH = h * 0.5f;
 
-        bool s[7] = {false}; // Segments: a, b, c, d, e, f, g
+        bool s[7] = {false}; // Segmentos activos: a, b, c, d, e, f, g
 
         // Convertir a mayúsculas para simplificar
         char c = toupper(character);

@@ -5,12 +5,12 @@ namespace hud
 {
     /**
      * @class Altimeter
-     * @brief Instrumento que muestra la altitud del avión
+     * @brief Tape vertical + display digital para la altitud barométrica.
      *
-     * Hereda de Instrument y proporciona:
-     * - Tape vertical con escala de altitud móvil
-     * - Caja de lectura digital con display de 7 segmentos
-     * - Indicador chevron para referencia visual
+     * Extiende `Instrument` para dibujar:
+     *  - Una escala móvil con marcas cada 100 ft.
+     *  - Una caja central con lectura numérica en 7 segmentos.
+     *  - Un chevron que conecta el tape con la lectura digital.
      */
     class Altimeter : public Instrument
     {
@@ -30,6 +30,5 @@ namespace hud
         void drawAltitudeTape(gfx::Renderer2D &renderer, float altitude);
         void drawCurrentAltitudeBox(gfx::Renderer2D &renderer, float altitude);
     };
-
 
 } // namespace hud

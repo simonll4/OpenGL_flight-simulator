@@ -29,13 +29,13 @@ namespace hud
         // ====================================================================
         // CONSTANTES DE CONFIGURACIÓN DEL INDICADOR
         // ====================================================================
-        
-        constexpr float kRoseRadius = 55.0f;               ///< Radio de la rosa de los vientos
-        constexpr float kMajorTickLength = 10.0f;          ///< Longitud de marcas principales (cada 10°)
-        constexpr float kMinorTickLength = 5.0f;           ///< Longitud de marcas menores (cada 5°)
-        constexpr float kVerticalIndicatorOffset = 25.0f;  ///< Separación del indicador vertical
-        constexpr float kVerticalIndicatorHeight = 60.0f;  ///< Altura del indicador vertical
-        constexpr float kMaxAltitudeDiff = 500.0f;         ///< Máxima diferencia de altura mostrada
+
+        constexpr float kRoseRadius = 55.0f;              ///< Radio de la rosa de los vientos
+        constexpr float kMajorTickLength = 10.0f;         ///< Longitud de marcas principales (cada 10°)
+        constexpr float kMinorTickLength = 5.0f;          ///< Longitud de marcas menores (cada 5°)
+        constexpr float kVerticalIndicatorOffset = 25.0f; ///< Separación del indicador vertical
+        constexpr float kVerticalIndicatorHeight = 60.0f; ///< Altura del indicador vertical
+        constexpr float kMaxAltitudeDiff = 500.0f;        ///< Máxima diferencia de altura mostrada
         constexpr float kPanelMarginLeft = 12.0f;
         constexpr float kPanelMarginRight = 12.0f;
         constexpr float kPanelMarginTop = 12.0f;
@@ -130,12 +130,20 @@ namespace hud
 
     } // namespace
 
+    ////////////////////////////////////////////////////////////////////////////
+    //  Ciclo de vida
+    ////////////////////////////////////////////////////////////////////////////
+
     WaypointIndicator::WaypointIndicator()
         : Instrument()
     {
         size_ = glm::vec2(kPanelWidth, kPanelHeight);
         color_ = glm::vec4(1.0f, 0.2f, 0.7f, 0.9f);
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Render principal
+    ////////////////////////////////////////////////////////////////////////////
 
     void WaypointIndicator::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
     {
@@ -153,6 +161,10 @@ namespace hud
         drawVerticalIndicator(renderer, nav);
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    //  Preparación de datos
+    ////////////////////////////////////////////////////////////////////////////
+
     WaypointIndicator::NavSnapshot WaypointIndicator::buildNavSnapshot(const flight::FlightData &flightData) const
     {
         NavSnapshot nav;
@@ -161,6 +173,10 @@ namespace hud
         nav.altitudeDifference = flightData.targetWaypoint.y - flightData.position.y;
         return nav;
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Rosa de los vientos + flecha magenta
+    ////////////////////////////////////////////////////////////////////////////
 
     void WaypointIndicator::drawCompassRose(gfx::Renderer2D &renderer, const NavSnapshot &nav)
     {
@@ -173,6 +189,9 @@ namespace hud
         drawWaypointPointer(renderer, center, nav.relativeAngle, color_);
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    //  Mensaje cuando no hay waypoint activo
+    ////////////////////////////////////////////////////////////////////////////
 
     void WaypointIndicator::drawNoWaypointMessage(gfx::Renderer2D &renderer)
     {
@@ -184,6 +203,10 @@ namespace hud
         gfx::TextRenderer::drawString(renderer, "NO WAYPOINT", textPos, glm::vec2(10.0f, 14.0f), glm::vec4(color_.r, color_.g, color_.b, 0.7f), 13.0f);
         renderer.drawCircle(center - glm::vec2(0.0f, 40.0f), 30.0f, glm::vec4(color_.r, color_.g, color_.b, 0.2f), 32, false);
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Indicador vertical de altitud relativa
+    ////////////////////////////////////////////////////////////////////////////
 
     void WaypointIndicator::drawVerticalIndicator(gfx::Renderer2D &renderer, const NavSnapshot &nav)
     {

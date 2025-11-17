@@ -8,6 +8,10 @@
 namespace gfx
 {
 
+    ////////////////////////////////////////////////////////////////////////////
+    //  Ciclo de vida
+    ////////////////////////////////////////////////////////////////////////////
+
     Renderer2D::Renderer2D() : vao_(0), vbo_(0), ebo_(0), screenWidth_(800), screenHeight_(600)
     {
         vertices_.reserve(MAX_VERTICES);
@@ -29,12 +33,12 @@ namespace gfx
         screenWidth_ = screenWidth;
         screenHeight_ = screenHeight;
 
-        // Crear proyección ortográfica
+        // Crear proyección ortográfica pixel-perfect para HUD (origen arriba-izquierda).
         projection_ = glm::ortho(0.0f, (float)screenWidth_, (float)screenHeight_, 0.0f, -1.0f, 1.0f);
 
         setupBuffers();
 
-        // Cargar shader 2D
+        // Compilar shader que aplica color sólido (sin texturas por ahora).
         shader_.load("shaders/hud.vert", "shaders/hud.frag");
     }
 
@@ -44,6 +48,10 @@ namespace gfx
         screenHeight_ = height;
         projection_ = glm::ortho(0.0f, (float)width, (float)height, 0.0f, -1.0f, 1.0f);
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Buffering
+    ////////////////////////////////////////////////////////////////////////////
 
     void Renderer2D::setupBuffers()
     {
@@ -75,6 +83,10 @@ namespace gfx
 
         checkGLError("Setting up 2D renderer buffers");
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Ciclo de batch
+    ////////////////////////////////////////////////////////////////////////////
 
     void Renderer2D::begin()
     {
@@ -108,8 +120,8 @@ namespace gfx
         glBindVertexArray(0);
 
         checkGLError("Flushing 2D renderer");
-        
-        // Limpiar después de renderizar para evitar problemas con múltiples flush
+
+        // Limpiar después de renderizar para evitar mezcla de batches consecutivos.
         vertices_.clear();
         indices_.clear();
     }
@@ -125,6 +137,10 @@ namespace gfx
             flush();
         }
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Helpers de construcción de primitivas
+    ////////////////////////////////////////////////////////////////////////////
 
     void Renderer2D::addVertex(const Vertex2D &vertex)
     {

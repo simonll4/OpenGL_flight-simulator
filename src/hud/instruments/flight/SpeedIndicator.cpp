@@ -4,9 +4,9 @@
 
 namespace hud
 {
-    // ============================================================================
-    // CONFIGURACIÓN DE LA ESCALA DEL TAPE
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Configuración de la escala del tape
+    ////////////////////////////////////////////////////////////////////////////
 
     static const float SPEED_STEP = 10.0f;      // Marcas cada 10 nudos
     static const float PIXELS_PER_STEP = 30.0f; // Separación vertical entre marcas
@@ -27,9 +27,9 @@ namespace hud
         color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
     }
 
-    // ============================================================================
-    // FUNCIÓN PRINCIPAL DE RENDERIZADO
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Render principal
+    ////////////////////////////////////////////////////////////////////////////
 
     void SpeedIndicator::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
     {
@@ -43,9 +43,9 @@ namespace hud
         drawCurrentSpeedBox(renderer, airspeed);
     }
 
-    // ============================================================================
-    // RENDERIZADO DEL TAPE DE VELOCIDAD
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Tape de velocidad (escala móvil)
+    ////////////////////////////////////////////////////////////////////////////
 
     void SpeedIndicator::drawSpeedTape(gfx::Renderer2D &renderer, float airspeed)
     {
@@ -62,7 +62,7 @@ namespace hud
         for (int i = -VISIBLE_MARKS; i <= VISIBLE_MARKS; ++i)
         {
             int markSpeed = (int)baseSpeed + i * (int)SPEED_STEP;
-            
+
             // Saltar velocidades negativas
             if (markSpeed < 0)
                 continue;
@@ -97,9 +97,9 @@ namespace hud
         }
     }
 
-    // ============================================================================
-    // CAJA DE LECTURA DIGITAL (CENTRO)
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Caja de lectura digital
+    ////////////////////////////////////////////////////////////////////////////
 
     void SpeedIndicator::drawCurrentSpeedBox(gfx::Renderer2D &renderer, float airspeed)
     {
@@ -145,9 +145,9 @@ namespace hud
         drawSpeedNumber(renderer, displaySpeed, numberPos);
     }
 
-    // ============================================================================
-    // RENDERIZADO DE NÚMEROS SIMPLES
-    // ============================================================================
+    ////////////////////////////////////////////////////////////////////////////
+    //  Renderizado de números (helper)
+    ////////////////////////////////////////////////////////////////////////////
 
     void SpeedIndicator::drawSpeedNumber(gfx::Renderer2D &renderer, int speed, const glm::vec2 &position)
     {

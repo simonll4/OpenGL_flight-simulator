@@ -11,7 +11,8 @@ namespace hud
 
     PitchLadder::PitchLadder() : Instrument()
     {
-        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
+        // Usar el mismo verde translúcido que el resto del HUD
+        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f);
     }
 
     void PitchLadder::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
@@ -23,7 +24,7 @@ namespace hud
         float viewportWidth = size_.x;
         float viewportHeight = size_.y;
 
-        // Centro del viewport
+        // Centro geométrico de la caja del instrumento
         float centerX = position_.x + viewportWidth * 0.5f;
         float centerY = position_.y + viewportHeight * 0.5f;
 
@@ -39,10 +40,10 @@ namespace hud
         // Convertir radio del círculo a píxeles
         float radiusPx = ndcDimensionToPixels(NDC_CIRCLE_RADIUS, size_.y);
 
-        // Dibujar círculo central (outline)
+        // Dibujar círculo central (outline) que sirve como aimpoint
         renderer.drawCircle(glm::vec2(centerX, centerY), radiusPx, color_, CIRCLE_SEGMENTS, false);
 
-        // Líneas laterales saliendo del círculo
+        // Líneas laterales saliendo del círculo (representan línea de horizonte local)
         float lineLengthPx = ndcDimensionToPixels(NDC_LATERAL_LINE_LENGTH, size_.x);
 
         // Línea lateral izquierda
@@ -61,7 +62,7 @@ namespace hud
         // Calcular índice de línea central basado en el pitch actual
         int centerLineIndex = static_cast<int>(std::round(pitchAngle / PITCH_STEP));
 
-        // Dibujar 5 líneas: 2 arriba, 1 central, 2 abajo del pitch actual
+        // Dibujar 5 líneas: 2 arriba, 1 central, 2 abajo del pitch actual para mantener claridad
         for (int i = centerLineIndex - 2; i <= centerLineIndex + 2; ++i)
         {
             float pitchLineAngle = i * PITCH_STEP;
@@ -77,7 +78,7 @@ namespace hud
     void PitchLadder::drawSinglePitchLine(gfx::Renderer2D &renderer, float centerX, float centerY,
                                           float pitchLineAngle, float currentPitch)
     {
-        // Calcular posición vertical basada en la diferencia entre el ángulo de la línea y el pitch actual
+        // Diferencia entre la división deseada y el pitch actual
         float pitchDiff = pitchLineAngle - currentPitch;
         float lineYNDC = pitchDiff * NDC_PER_DEGREE; // 1% NDC por grado
 
@@ -93,7 +94,7 @@ namespace hud
         float lineWidthPx = ndcDimensionToPixels(lineWidthNDC, size_.x);
         float gapPx = ndcDimensionToPixels(NDC_GAP, size_.x);
 
-        // Calcular extremos de las dos partes de la línea (cortada en el centro)
+        // Calcular extremos de las dos partes de la línea (cortada para dejar visible la mira)
         // Parte izquierda: desde -lineWidth hasta -gap
         glm::vec2 leftStart(centerX - lineWidthPx, lineY);
         glm::vec2 leftEnd(centerX - gapPx, lineY);
@@ -123,11 +124,15 @@ namespace hud
             glm::vec2 rightMarkerEnd(centerX + lineWidthPx,
                                      lineY + (isPositive ? markerSizePx : -markerSizePx));
             renderer.drawLine(rightMarkerStart, rightMarkerEnd, color_, 2.0f);
+
+            // Convención HUD: marcadores apuntan hacia arriba para pitch positivo (cielo)
+            // y hacia abajo para pitch negativo (suelo) para transmitir sentido visual.
         }
     }
 
     float PitchLadder::ndcDimensionToPixels(float ndcDim, float axisLength) const
     {
+        // Escala un porcentaje de NDC a la cantidad equivalente en píxeles
         return ndcDim * axisLength * 0.5f;
     }
 
