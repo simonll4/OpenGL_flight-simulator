@@ -10,13 +10,11 @@ namespace hud
      * Implementación de un indicador de navegación inspirado en el HSI de Garmin.
      * Proporciona información visual completa para navegación por waypoints mediante:
      *
-     * - Rosa de los vientos rotativa con marcas cada 5° y 10°
+     * - Rosa de los vientos fija con marcas cada 5° y 10°
      * - Etiquetas en los puntos cardinales (N, E, S, W)
      * - Números de rumbo cada 30° (000, 030, 060, etc.)
-     * - Flecha magenta indicando dirección al waypoint
-     * - Información digital: distancia, ángulo de giro y bearing
-     * - Barra de proximidad al waypoint
-     * - Indicador vertical de diferencia de altura
+         * - Flecha magenta indicando dirección al waypoint
+         * - Indicador vertical de diferencia de altura
      *
      * El HSI combina la funcionalidad de una brújula con un indicador de navegación,
      * permitiendo al piloto visualizar simultáneamente el rumbo actual y la dirección
@@ -46,8 +44,6 @@ namespace hud
         struct NavSnapshot
         {
             float heading = 0.0f;           ///< Rumbo actual del avión (0-360°)
-            float distance = 0.0f;          ///< Distancia al waypoint en metros
-            float bearing = 0.0f;           ///< Bearing absoluto al waypoint (0-360°)
             float relativeAngle = 0.0f;     ///< Ángulo relativo al waypoint (-180 a +180°)
             float altitudeDifference = 0.0f;///< Diferencia de altura con el waypoint (metros)
         };
@@ -60,9 +56,7 @@ namespace hud
         NavSnapshot buildNavSnapshot(const flight::FlightData &flightData) const;
 
         // Métodos de renderizado por componente
-        void drawMainPanel(gfx::Renderer2D &renderer);
         void drawCompassRose(gfx::Renderer2D &renderer, const NavSnapshot &nav);
-        void drawInfoPanel(gfx::Renderer2D &renderer, const NavSnapshot &nav);
         void drawVerticalIndicator(gfx::Renderer2D &renderer, const NavSnapshot &nav);
         void drawNoWaypointMessage(gfx::Renderer2D &renderer);
     };

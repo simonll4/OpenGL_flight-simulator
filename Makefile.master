@@ -38,7 +38,7 @@ ifneq "$(strip $(LIB_C_SRC) $(LIB_CXX_SRC))" ""
 endif
 
 $(BUILD_DIR)/$(PROJECT_NAME): $(LIB_OBJ) $(OBJ_LIST)
-	cd $(BUILD_DIR)/ && $(CC) -L$(BUILD_DIR) $(notdir $(LIB_OBJ)) $(notdir $(OBJ_LIST)) -o $(PROJECT_NAME) $(LDFLAGS) $(LDLIBS)
+	$(CC) $(LIB_OBJ) $(OBJ_LIST) -o $@ $(LDFLAGS) $(LDLIBS)
 
 .PHONY: build run clean
 

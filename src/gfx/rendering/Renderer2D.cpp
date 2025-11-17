@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>
+#include <stdexcept>
 
 namespace gfx
 {
@@ -107,6 +108,22 @@ namespace gfx
         glBindVertexArray(0);
 
         checkGLError("Flushing 2D renderer");
+        
+        // Limpiar después de renderizar para evitar problemas con múltiples flush
+        vertices_.clear();
+        indices_.clear();
+    }
+
+    void Renderer2D::ensureCapacity(size_t vertexCount, size_t indexCount)
+    {
+        if (vertexCount > MAX_VERTICES || indexCount > MAX_INDICES)
+        {
+            throw std::runtime_error("Renderer2D primitive exceeds buffer capacity");
+        }
+        if (vertices_.size() + vertexCount > MAX_VERTICES || indices_.size() + indexCount > MAX_INDICES)
+        {
+            flush();
+        }
     }
 
     void Renderer2D::addVertex(const Vertex2D &vertex)
@@ -122,6 +139,7 @@ namespace gfx
 
     void Renderer2D::addQuad(const glm::vec2 &pos, const glm::vec2 &size, const glm::vec4 &color)
     {
+        ensureCapacity(4, 6);
         GLuint baseIndex = vertices_.size();
 
         // Cuatro vértices del quad
@@ -142,6 +160,7 @@ namespace gfx
 
     void Renderer2D::drawLine(const glm::vec2 &start, const glm::vec2 &end, const glm::vec4 &color, float thickness)
     {
+        ensureCapacity(4, 6);
         glm::vec2 direction = glm::normalize(end - start);
         glm::vec2 perpendicular = glm::vec2(-direction.y, direction.x) * (thickness * 0.5f);
 
@@ -184,6 +203,7 @@ namespace gfx
     {
         if (filled)
         {
+            ensureCapacity(static_cast<size_t>(segments) + 2, static_cast<size_t>(segments) * 3);
             GLuint centerIndex = vertices_.size();
             addVertex({center, color, {0.5f, 0.5f}});
 
@@ -249,6 +269,46 @@ namespace gfx
             float angle = startAngle + angleRange * i / numTicks;
             float tickLength = (i % 5 == 0) ? 10.0f : 5.0f; // Ticks más largos cada 5
             drawTick(center, angle, radius - tickLength, radius, color, 1.0f);
+        }
+    }
+
+    void Renderer2D::drawPolyline(const std::vector<glm::vec2> &points, const glm::vec4 &color, float thickness, bool closed)
+    {
+        if (points.size() < 2)
+            return;
+
+        // Dibujar líneas conectadas
+        for (size_t i = 0; i < points.size() - 1; ++i)
+        {
+            drawLine(points[i], points[i + 1], color, thickness);
+        }
+
+        // Si es cerrada, conectar último con primero
+        if (closed && points.size() > 2)
+        {
+            drawLine(points[points.size() - 1], points[0], color, thickness);
+        }
+    }
+
+    void Renderer2D::drawTriangle(const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec4 &color, bool filled)
+    {
+        if (filled)
+        {
+            ensureCapacity(3, 3);
+            GLuint baseIndex = vertices_.size();
+
+            addVertex({p1, color, {0.0f, 0.0f}});
+            addVertex({p2, color, {1.0f, 0.0f}});
+            addVertex({p3, color, {0.5f, 1.0f}});
+
+            indices_.push_back(baseIndex);
+            indices_.push_back(baseIndex + 1);
+            indices_.push_back(baseIndex + 2);
+        }
+        else
+        {
+            // Dibujar borde como polilínea cerrada
+            drawPolyline({p1, p2, p3}, color, 1.0f, true);
         }
     }
 

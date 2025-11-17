@@ -10,13 +10,13 @@
 // Includes de instrumentos implementados
 #include "../instruments/flight/Altimeter.h"
 #include "../instruments/flight/SpeedIndicator.h"
+#include "../instruments/flight/VerticalSpeedIndicator.h"
 #include "../instruments/navigation/WaypointIndicator.h"
+#include "../instruments/attitude/BankAngleIndicator.h"
+#include "../instruments/attitude/PitchLadder.h"
 
 // TODO: Agregar includes de futuros instrumentos
-// #include "AttitudeIndicator.h"
-// #include "AirspeedIndicator.h"
 // #include "HeadingIndicator.h"
-// #include "VerticalSpeedIndicator.h"
 
 namespace hud
 {
@@ -71,12 +71,13 @@ namespace hud
         // Útil para configuración directa sin recorrer el vector
         Altimeter* altimeter_;
         SpeedIndicator* speedIndicator_;
+        VerticalSpeedIndicator* verticalSpeedIndicator_;
         WaypointIndicator* waypointIndicator_;
+        BankAngleIndicator* bankAngleIndicator_;
+        PitchLadder* pitchLadder_;
 
         // TODO: Agregar referencias a futuros instrumentos aquí
-        // AttitudeIndicator* attitudeIndicator_;
         // HeadingIndicator* headingIndicator_;
-        // VerticalSpeedIndicator* verticalSpeedIndicator_;
 
         // ========================================================================
         // DATOS Y CONFIGURACIÓN

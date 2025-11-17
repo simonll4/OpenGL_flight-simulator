@@ -46,6 +46,10 @@ namespace gfx
         // Formas específicas para instrumentos
         void drawTick(const glm::vec2 &center, float angle, float innerRadius, float outerRadius, const glm::vec4 &color, float thickness = 1.0f);
         void drawScale(const glm::vec2 &center, float radius, float startAngle, float endAngle, int numTicks, const glm::vec4 &color);
+        
+        // Primitivas adicionales para instrumentos HUD de actitud
+        void drawPolyline(const std::vector<glm::vec2> &points, const glm::vec4 &color, float thickness = 1.0f, bool closed = false);
+        void drawTriangle(const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec4 &color, bool filled = false);
 
     private:
         GLuint vao_, vbo_, ebo_;
@@ -63,6 +67,7 @@ namespace gfx
         void addVertex(const Vertex2D &vertex);
         void addQuad(const glm::vec2 &pos, const glm::vec2 &size, const glm::vec4 &color);
         void setupBuffers();
+        void ensureCapacity(size_t vertexCount, size_t indexCount);
     };
 
 } // namespace gfx

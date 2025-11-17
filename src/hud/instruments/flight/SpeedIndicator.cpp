@@ -1,5 +1,6 @@
 #include "SpeedIndicator.h"
 #include "../../../gfx/rendering/TextRenderer.h"
+#include <cmath>
 
 namespace hud
 {
@@ -150,31 +151,16 @@ namespace hud
 
     void SpeedIndicator::drawSpeedNumber(gfx::Renderer2D &renderer, int speed, const glm::vec2 &position)
     {
-        // Por simplicidad, usa rectángulos para formar números básicos
-        // En una implementación completa, se usaría 7-segmentos como en Altimeter
-        
-        std::string speedStr = std::to_string(speed);
-        
-        const float digitWidth = 8.0f;
-        const float digitHeight = 12.0f;
-        const float digitSpacing = 10.0f;
-        
-        float totalWidth = speedStr.length() * digitSpacing;
-        float startX = position.x - totalWidth * 0.5f;
-        
-        // Dibujar cada dígito (versión simplificada - solo rectángulos como placeholder)
-        for (size_t i = 0; i < speedStr.length(); ++i)
-        {
-            float digitX = startX + i * digitSpacing;
-            float digitY = position.y - digitHeight * 0.5f;
-            
-            // Placeholder: dibujar un pequeño rectángulo
-            renderer.drawRect(
-                glm::vec2(digitX, digitY),
-                glm::vec2(digitWidth, digitHeight),
-                color_,
-                false);
-        }
+        static const glm::vec2 DIGIT_SIZE = glm::vec2(8.0f, 12.0f);
+        static const float DIGIT_SPACING = 10.0f;
+
+        gfx::TextRenderer::drawString(
+            renderer,
+            std::to_string(speed),
+            position,
+            DIGIT_SIZE,
+            color_,
+            DIGIT_SPACING);
     }
 
 } // namespace hud

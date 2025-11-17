@@ -132,9 +132,10 @@ HUD/
 ├── shaders/               # Shaders GLSL
 ├── assets/                # Recursos (modelos, texturas)
 ├── docs/                  # Documentación completa
-│   ├── hud/              # Docs del módulo HUD
-│   ├── gfx/              # Docs del sistema gráfico
-│   └── waypoints/        # Docs de navegación
+│   ├── README.md         # Guía general y estructura del repo
+│   ├── architecture.md   # Detalle de módulos y flujo de datos
+│   ├── hud.md            # Instrumentos y HUD
+│   └── missions.md       # Misiones, planner y overlay
 ├── build/                 # Ejecutable compilado
 └── include/              # Headers externos
 
@@ -162,10 +163,14 @@ HUD/
 | Tecla | Acción |
 |-------|--------|
 | **V** | Cambiar vista (POV ↔ 3ra persona) |
-| **N** | Activar/Desactivar waypoints |
+| **C** | Activar/Desactivar cámara suave |
+| **Z** / **X** | Alejar/Acercar cámara en 3ª persona |
 | **M** | Saltar waypoint actual |
 | **R** | Reiniciar misión |
+| **TAB** | Volver al menú de misiones |
 | **ESC** | Salir |
+
+> Desde el overlay: **ENTER** confirma el briefing inicial y **SPACE** inicia vuelo libre tras completar una misión.
 
 ---
 
@@ -173,21 +178,11 @@ HUD/
 
 Toda la documentación está centralizada en `/docs`:
 
-### Documentación del HUD
-📖 **[Arquitectura del Módulo](docs/hud/README_MODULE.md)**  
-📖 **[Guía de Instrumentos](docs/hud/README_INSTRUMENTS.md)**  
-📖 **[Guía de Migración](docs/hud/MIGRATION_GUIDE.md)**  
-
-### Sistema de Navegación
-📖 **[Manual del Waypoint Indicator](docs/waypoints/WAYPOINT_INDICATOR_README.md)**  
-📖 **[Sistema de Navegación Completo](docs/waypoints/WAYPOINT_NAVIGATION.md)**  
-
-### Sistema Gráfico
-📖 **[Módulo GFX](docs/gfx/README.md)**  
-
-### Desarrollo
-📖 **[Guía de Estilo de Código](docs/CODING_STYLE.md)**  
-📖 **[Índice Completo de Documentación](docs/INDEX.md)**  
+### Referencias disponibles
+- 📘 **[docs/README.md](docs/README.md)** – resumen general y guía rápida.
+- 🧭 **[docs/architecture.md](docs/architecture.md)** – cómo se comunican Application, estados y sistemas.
+- 🛩️ **[docs/hud.md](docs/hud.md)** – instrumentos actuales y cómo agregar nuevos.
+- 🎯 **[docs/missions.md](docs/missions.md)** – flujo de misiones, planificador, runtime y overlay.
 
 ---
 
@@ -223,7 +218,7 @@ Toda la documentación está centralizada en `/docs`:
 4. **Implementar** `render()` override
 5. **Integrar en** `FlightHUD`
 
-Guía completa: [docs/hud/README_MODULE.md](docs/hud/README_MODULE.md)
+Guía completa: [docs/hud.md](docs/hud.md)
 
 ### Coding Standards
 
@@ -253,7 +248,7 @@ El simulador incluye un sistema completo de navegación por waypoints:
 - Altitudes variables: 100-200 metros
 - Radio de captura: 80 metros
 
-Documentación completa: [docs/waypoints/](docs/waypoints/)
+Documentación completa: [docs/missions.md](docs/missions.md)
 
 ---
 
@@ -287,7 +282,7 @@ make -j4
 ```
 
 ### Waypoints no visibles
-**Solución**: Presiona **N** para activar el sistema de waypoints
+**Solución**: inicia una misión desde el planificador; los marcadores sólo aparecen durante `FlightState` y se ocultan automáticamente al completar la ruta.
 
 ### Performance bajo
 **Solución**: Reducir resolución o densidad del terreno en código

@@ -166,8 +166,10 @@ namespace flight
         cachedFlightData_.cameraRight = worldOrientation_ * glm::vec3(1.0f, 0.0f, 0.0f);
 
         const glm::vec3 euler = glm::eulerAngles(worldOrientation_);
-        cachedFlightData_.pitch = -glm::degrees(euler.x);
-        cachedFlightData_.roll = glm::degrees(euler.z);
+        // Corrección de signos para orientación correcta
+        // euler.x = +pitch físico, euler.z = -roll físico (debido a bodyToWorld swap)
+        cachedFlightData_.pitch = glm::degrees(euler.x);   // Sin inversión: +climb = +pitch
+        cachedFlightData_.roll = -glm::degrees(euler.z);   // Con inversión: +bank right = +roll
 
         const glm::vec3 front = cachedFlightData_.cameraFront;
         float heading = glm::degrees(std::atan2(front.x, -front.z));
@@ -179,14 +181,14 @@ namespace flight
         cachedFlightData_.yaw = heading;
 
         // Datos aerodinámicos
-        cachedFlightData_.angleOfAttack = glm::degrees(solver_->getAngleOfAttack());
-        cachedFlightData_.sideslip = glm::degrees(solver_->getSideslip());
+    cachedFlightData_.angleOfAttack = solver_->getAngleOfAttack();
+    cachedFlightData_.sideslip = solver_->getSideslip();
         cachedFlightData_.dynamicPressure = solver_->getDynamicPressure();
 
         // Velocidades angulares
-        cachedFlightData_.rollRate = glm::degrees(state.body_omega.x);
-        cachedFlightData_.pitchRate = glm::degrees(state.body_omega.y);
-        cachedFlightData_.yawRate = glm::degrees(state.body_omega.z);
+    cachedFlightData_.rollRate = state.body_omega.x;
+    cachedFlightData_.pitchRate = state.body_omega.y;
+    cachedFlightData_.yawRate = state.body_omega.z;
 
         // G-forces
         cachedFlightData_.gForce = solver_->getGForce();

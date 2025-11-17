@@ -69,7 +69,6 @@ namespace flight
 
         static constexpr float MIN_AIRSPEED = 15.0f;
         static constexpr float MAX_G_FORCE = 9.0f;
-        static constexpr float MAX_PITCH = 1.57f;
 
         void syncState();
         void writeLogEntry();

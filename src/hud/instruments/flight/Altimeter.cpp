@@ -42,6 +42,9 @@ namespace hud
 
     void Altimeter::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
     {
+        if (!enabled_)
+            return;
+
         float altitude = flightData.altitude;
 
         drawBackground(renderer);

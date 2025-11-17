@@ -5,11 +5,16 @@
 namespace flight
 {
 
-    // ======================= Helpers internos  =========================
-    static constexpr float EPS = 1e-4f; // tolerancias numéricas
-    static constexpr float MPS_TO_KT = 1.94384f;
-    static constexpr float MPS_TO_FTPM = 196.8504f;
-    static constexpr float M_TO_FT = 3.28084f;
+    // ======================= Constantes de conversión =========================
+    static constexpr float EPS = 1e-4f;             // Tolerancia numérica
+    static constexpr float MPS_TO_KT = 1.94384f;    // m/s → kt (nudos)
+    static constexpr float MPS_TO_FTPM = 196.8504f; // m/s → ft/min
+    static constexpr float M_TO_FT = 3.28084f;      // m → ft (pies)
+    
+    // Parámetros de suavizado (filtro exponencial)
+    static constexpr float TAU_ATTITUDE = 0.10f;      // Tiempo de respuesta actitud [s]
+    static constexpr float TAU_VELOCITY = 0.15f;      // Tiempo de respuesta velocidad [s]
+    static constexpr float MAX_PLAUSIBLE_SPEED = 300.0f; // Velocidad máxima plausible [m/s]
 
     static inline bool isFiniteVec(const glm::vec3 &v)
     {
@@ -118,8 +123,8 @@ namespace flight
         // Nota: si f≈worldUp, el alabeo no está bien definido → se preserva el valor anterior.
 
         // 3) Suavizado exponencial (evita jitter) + shortest-arc para ángulos
-        const float dtClamped = glm::min(deltaTime, 0.25f);               // cap anti-pause
-        const float alphaAtt = 1.0f - std::exp(-dtClamped / tauAttitude); // [0..1]
+        const float dtClamped = glm::min(deltaTime, 0.25f);                 // cap anti-pause
+        const float alphaAtt = 1.0f - std::exp(-dtClamped / TAU_ATTITUDE); // [0..1]
 
         const float prevPitch = pitch;
         const float prevRoll = roll;
@@ -146,10 +151,10 @@ namespace flight
         const glm::vec3 dP = pos - position;
         const float disp = glm::length(dP);
 
-        if (disp / deltaTime < maxPlausibleSpeed)
+        if (disp / deltaTime < MAX_PLAUSIBLE_SPEED)
         {
             const glm::vec3 velMeasured = dP / deltaTime;
-            const float alphaVel = 1.0f - std::exp(-dtClamped / tauVelocity);
+            const float alphaVel = 1.0f - std::exp(-dtClamped / TAU_VELOCITY);
             velocity += (velMeasured - velocity) * alphaVel;
         } // si no: ignorar spike (anti-teleport)
 
@@ -170,12 +175,5 @@ namespace flight
         airspeed = glm::max(0.0f, airspeed);
         verticalSpeed = glm::clamp(verticalSpeed, -6000.0f, 6000.0f);
     }
-
-    void FlightData::simulatePhysics(float /*deltaTime*/)
-    {
-        // TODO No implementado: en modo telemetría sólo se actualiza desde cámara
-    }
-
-    float FlightData::normalizeAngle(float angle) { return normAngle360(angle); }
 
 } // namespace flight

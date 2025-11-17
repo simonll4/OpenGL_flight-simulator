@@ -42,7 +42,9 @@ namespace hud
     // CONSTRUCTOR
     // ============================================================================
 
-    FlightHUD::FlightHUD() : altimeter_(nullptr), speedIndicator_(nullptr), waypointIndicator_(nullptr), screenWidth_(1280), screenHeight_(720)
+    FlightHUD::FlightHUD() : altimeter_(nullptr), speedIndicator_(nullptr), verticalSpeedIndicator_(nullptr),
+                             waypointIndicator_(nullptr), bankAngleIndicator_(nullptr), pitchLadder_(nullptr),
+                             screenWidth_(1280), screenHeight_(720)
     {
         // Crear el renderer 2D compartido
         renderer2D_ = std::make_unique<gfx::Renderer2D>();
@@ -64,15 +66,27 @@ namespace hud
         speedIndicator_ = speedIndicator.get();
         instruments_.push_back(std::move(speedIndicator));
 
+        // VerticalSpeedIndicator
+        auto verticalSpeedIndicator = std::make_unique<VerticalSpeedIndicator>();
+        verticalSpeedIndicator_ = verticalSpeedIndicator.get();
+        instruments_.push_back(std::move(verticalSpeedIndicator));
+
         // WaypointIndicator (HSI)
         auto waypointIndicator = std::make_unique<WaypointIndicator>();
         waypointIndicator_ = waypointIndicator.get();
         instruments_.push_back(std::move(waypointIndicator));
 
-        // TODO: Agregar nuevos instrumentos aquí siguiendo el mismo patrón:
-        // auto attitudeIndicator = std::make_unique<AttitudeIndicator>();
-        // attitudeIndicator_ = attitudeIndicator.get();
-        // instruments_.push_back(std::move(attitudeIndicator));
+        // BankAngleIndicator
+        auto bankAngleIndicator = std::make_unique<BankAngleIndicator>();
+        bankAngleIndicator_ = bankAngleIndicator.get();
+        instruments_.push_back(std::move(bankAngleIndicator));
+
+        // PitchLadder
+        auto pitchLadder = std::make_unique<PitchLadder>();
+        pitchLadder_ = pitchLadder.get();
+        instruments_.push_back(std::move(pitchLadder));
+
+        // TODO: Agregar nuevos instrumentos aquí siguiendo el mismo patrón
     }
 
     // ============================================================================
@@ -104,10 +118,12 @@ namespace hud
         std::cout << "Flight HUD initialized: " << screenWidth << "x" << screenHeight << std::endl;
         std::cout << "  - Altimeter: OK" << std::endl;
         std::cout << "  - SpeedIndicator: OK" << std::endl;
+        std::cout << "  - VerticalSpeedIndicator: OK" << std::endl;
         std::cout << "  - WaypointIndicator (HSI): OK" << std::endl;
-        // TODO: Agregar logs para cada instrumento cuando se implementen
-        // std::cout << "  - AttitudeIndicator: OK" << std::endl;
-        // etc...
+        std::cout << "  - BankAngleIndicator: OK" << std::endl;
+        std::cout << "  - PitchLadder: OK" << std::endl;
+        // TODO: Agregar logs para futuros instrumentos
+        // std::cout << "  - HeadingIndicator: OK" << std::endl;
     }
 
     /**
@@ -245,6 +261,38 @@ namespace hud
         }
 
         // ------------------------------------------------------------------------
+        // VERTICAL SPEED INDICATOR (VSI) - ENTRE CENTRO Y ALTÍMETRO
+        // ------------------------------------------------------------------------
+        {
+            const float WIDTH = 80.0f;    // Más estrecho que los tapes principales
+            const float HEIGHT = 225.0f;  // 50% de altura de los tapes principales
+            const float GAP_TO_ALTIMETER = 20.0f; // Separación mínima recomendada
+            const float GAP_TO_FPV = 12.0f;       // Separación mínima respecto al eje central
+
+            // Recalcular posición del altímetro (coincidir con bloque anterior)
+            const float ALT_WIDTH = 120.0f;
+            const float ALT_HEIGHT = 450.0f; (void)ALT_HEIGHT;
+            const float ALT_MARGIN_RIGHT = 30.0f;
+            float altPosX = screenWidth_ - ALT_WIDTH - ALT_MARGIN_RIGHT;
+
+            // Posición ideal: a la izquierda del altímetro, separado fijo
+            float desiredRight = altPosX - GAP_TO_ALTIMETER; // borde derecho del VSI
+            float posX = desiredRight - WIDTH;                // borde izquierdo del VSI
+
+            // Asegurar separación mínima desde el eje central (FPV)
+            float minPosX = centerX + GAP_TO_FPV;
+            if (posX < minPosX)
+                posX = minPosX;
+
+            float posY = centerY - HEIGHT * 0.5f;
+
+            verticalSpeedIndicator_->setPosition(glm::vec2(posX, posY));
+            verticalSpeedIndicator_->setSize(glm::vec2(WIDTH, HEIGHT));
+            verticalSpeedIndicator_->setColor(hudColor_);
+            verticalSpeedIndicator_->setEnabled(true);
+        }
+
+        // ------------------------------------------------------------------------
         // TODO: ATTITUDE INDICATOR (Horizonte Artificial) - CENTRO
         // ------------------------------------------------------------------------
         // {
@@ -272,19 +320,49 @@ namespace hud
         // }
 
         // ------------------------------------------------------------------------
-        // WAYPOINT INDICATOR (Navegación) - CENTRO SUPERIOR (Estilo Profesional)
+        // WAYPOINT INDICATOR (Navegación) - CENTRO SUPERIOR
         // ------------------------------------------------------------------------
         {
-            const float WIDTH = 340.0f;   // Panel más ancho para info adicional
-            const float HEIGHT = 180.0f;  // Panel ajustado para nueva brújula
-            const float MARGIN_TOP = 20.0f;
+            const float PANEL_WIDTH = 159.0f;   // Bounding box actual de la rosa
+            const float PANEL_HEIGHT = 134.0f;
+            const float COMPASS_CENTER_OFFSET_X = 92.0f; // 12 + 25 + 55
+            const float COMPASS_CENTER_OFFSET_Y = 67.0f; // 12 + 55
+            const float ROSE_RADIUS = 55.0f;
+            const float TOP_MARGIN = 30.0f;
 
-            float posX = centerX - WIDTH * 0.5f;  // Centrado horizontalmente
-            float posY = MARGIN_TOP;              // Parte superior
+            float desiredCenterX = centerX;
+            float desiredCenterY = TOP_MARGIN + ROSE_RADIUS;
+
+            float posX = desiredCenterX - COMPASS_CENTER_OFFSET_X;
+            float posY = desiredCenterY - COMPASS_CENTER_OFFSET_Y;
 
             waypointIndicator_->setPosition(glm::vec2(posX, posY));
-            waypointIndicator_->setSize(glm::vec2(WIDTH, HEIGHT));
+            waypointIndicator_->setSize(glm::vec2(PANEL_WIDTH, PANEL_HEIGHT));
             waypointIndicator_->setColor(hudColor_);
+        }
+
+        // ------------------------------------------------------------------------
+        // PITCH LADDER (Escalera de Cabeceo) - CENTRO
+        // ------------------------------------------------------------------------
+        {
+            // PitchLadder ocupa toda la pantalla (coordenadas relativas al centro)
+            // Le pasamos las dimensiones completas para que pueda calcular conversiones NDC->píxeles
+            pitchLadder_->setPosition(glm::vec2(0.0f, 0.0f));
+            pitchLadder_->setSize(glm::vec2(static_cast<float>(screenWidth_), static_cast<float>(screenHeight_)));
+            pitchLadder_->setColor(hudColor_);
+            pitchLadder_->setEnabled(true);
+        }
+
+        // ------------------------------------------------------------------------
+        // BANK ANGLE INDICATOR (Indicador de Alabeo) - ABAJO CENTRO
+        // ------------------------------------------------------------------------
+        {
+            // BankAngleIndicator también usa toda la pantalla para conversiones NDC
+            // Se dibuja en la parte inferior (NDC_CENTER_Y = -0.85)
+            bankAngleIndicator_->setPosition(glm::vec2(0.0f, 0.0f));
+            bankAngleIndicator_->setSize(glm::vec2(static_cast<float>(screenWidth_), static_cast<float>(screenHeight_)));
+            bankAngleIndicator_->setColor(hudColor_);
+            bankAngleIndicator_->setEnabled(true);
         }
     }
 

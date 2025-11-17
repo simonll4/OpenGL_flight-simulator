@@ -2,11 +2,7 @@
 
 namespace dlfdm {
 
-static std::ostream& operator<<(std::ostream& os, const glm::vec2 v){
-    os << v.x << "," << v.y;
-    return os;
-}
-
+// Helper para logging de vectores 3D
 static std::ostream& operator<<(std::ostream& os, const glm::vec3 v){
     os << v.x << "," << v.y << "," << v.z;
     return os;
@@ -62,8 +58,7 @@ void FDMSolver::update(const ControlInputs &controls) {
     // Integración RK4 (como en CGyAV-dlfdm)
     // ================================================================
 
-    // k1
-    AircraftState k1_state = aircraft_state_;
+    // k1 (estado y derivadas actuales)
     AircraftDynamics::StateDerivatives k1_deriv = state_deriv_;
 
     // k2
