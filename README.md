@@ -28,7 +28,8 @@ Simulador de vuelo 3D completo con sistema HUD profesional que incluye:
 
 ### Sistema HUD (Heads-Up Display)
 - **Altímetro digital** con tape vertical
-- **Indicador de velocidad** (próximamente)
+- **Indicador de velocidad** con tape vertical
+- **VSI (Vertical Speed Indicator)** con escala fija
 - **Navegación por waypoints** con panel HSI profesional
 - **Arquitectura modular** para agregar instrumentos fácilmente
 
@@ -52,6 +53,8 @@ Simulador de vuelo 3D completo con sistema HUD profesional que incluye:
 ```
 [Vista POV con HUD completo]
 - Altímetro (derecha)
+- Indicador de Velocidad (izquierda)
+- VSI (centro-derecha)
 - Waypoint Indicator (centro superior)
 - Modelo F-16 con texturizado
 - Terreno y skybox
@@ -195,7 +198,8 @@ Toda la documentación está centralizada en `/docs`:
 - **Ubicación**: `src/hud/`
 - **Función**: Sistema de interfaz de usuario en tiempo real
 - **Arquitectura**: Modular, basada en herencia polimórfica
-- **Instrumentos**: Altímetro, SpeedIndicator, WaypointIndicator
+- **Instrumentos**: Altímetro, SpeedIndicator, WaypointIndicator, VSI, PitchLadder, BankAngleIndicator
+- **Ubicación**: `src/hud/`
 
 #### GFX (Graphics)
 - **Ubicación**: `src/gfx/`
@@ -292,21 +296,21 @@ make -j4
 
 ## Roadmap
 
-### Versión Actual: v2.0
+### Versión Actual: v2.1
 - ✅ Sistema HUD modular completo
 - ✅ Waypoint Indicator profesional
+- ✅ Speed Indicator
+- ✅ Vertical Speed Indicator (VSI)
+- ✅ Pitch Ladder (con rotación)
+- ✅ Bank Angle Indicator (refinado)
 - ✅ Documentación centralizada
 - ✅ Arquitectura organizada
 
 ### Próximas Versiones
 
-#### v2.1
+#### v2.2
 - [ ] Attitude Indicator (horizonte artificial)
 - [ ] Heading Indicator (rumbo)
-- [ ] Activar SpeedIndicator
-
-#### v2.2
-- [ ] VSI (Vertical Speed Indicator)
 - [ ] Turn Coordinator
 - [ ] Radio Altimeter
 

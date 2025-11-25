@@ -169,13 +169,20 @@ namespace flight
         cachedFlightData_.cameraUp = worldOrientation_ * glm::vec3(0.0f, 1.0f, 0.0f);
         cachedFlightData_.cameraRight = worldOrientation_ * glm::vec3(1.0f, 0.0f, 0.0f);
 
-        const glm::vec3 euler = glm::eulerAngles(worldOrientation_);
-        // Corrección de signos para orientación correcta
-        // euler.x = +pitch físico, euler.z = -roll físico (debido a bodyToWorld swap)
-        cachedFlightData_.pitch = glm::degrees(euler.x); // Sin inversión: +climb = +pitch
-        cachedFlightData_.roll = -glm::degrees(euler.z); // Con inversión: +bank right = +roll
+        // Calcular pitch a partir del vector frontal de la cámara
+        const glm::vec3 &front = cachedFlightData_.cameraFront;
+        float pitchRad = std::asin(glm::clamp(front.y, -1.0f, 1.0f));
+        cachedFlightData_.pitch = glm::degrees(pitchRad);
 
-        const glm::vec3 front = cachedFlightData_.cameraFront;
+        // Calcular roll a partir de los vectores right y up de la cámara
+        const glm::vec3 &right = cachedFlightData_.cameraRight;
+        const glm::vec3 &up    = cachedFlightData_.cameraUp;
+        float rollRad = std::atan2(-right.y, up.y);
+        float rollDeg = glm::degrees(rollRad);
+        if (rollDeg > 180.0f) rollDeg -= 360.0f;
+        else if (rollDeg < -180.0f) rollDeg += 360.0f;
+        cachedFlightData_.roll = rollDeg;
+
         float heading = glm::degrees(std::atan2(front.x, -front.z));
         heading = std::fmod(heading, 360.0f);
         if (heading < 0.0f)

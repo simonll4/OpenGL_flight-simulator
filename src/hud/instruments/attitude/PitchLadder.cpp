@@ -32,7 +32,7 @@ namespace hud
         drawCrosshair(renderer, centerX, centerY);
 
         // Dibujar líneas de pitch (dinámicas)
-        drawPitchLines(renderer, centerX, centerY, flightData.pitch);
+        drawPitchLines(renderer, centerX, centerY, flightData.pitch, flightData.roll);
     }
 
     void PitchLadder::drawCrosshair(gfx::Renderer2D &renderer, float centerX, float centerY)
@@ -57,7 +57,7 @@ namespace hud
         renderer.drawLine(rightStart, rightEnd, color_, 2.0f);
     }
 
-    void PitchLadder::drawPitchLines(gfx::Renderer2D &renderer, float centerX, float centerY, float pitchAngle)
+    void PitchLadder::drawPitchLines(gfx::Renderer2D &renderer, float centerX, float centerY, float pitchAngle, float rollAngle)
     {
         // Calcular índice de línea central basado en el pitch actual
         int centerLineIndex = static_cast<int>(std::round(pitchAngle / PITCH_STEP));
@@ -70,13 +70,13 @@ namespace hud
             // Solo generar si está dentro del rango visual razonable
             if (pitchLineAngle >= -MAX_PITCH_DISPLAY && pitchLineAngle <= MAX_PITCH_DISPLAY)
             {
-                drawSinglePitchLine(renderer, centerX, centerY, pitchLineAngle, pitchAngle);
+                drawSinglePitchLine(renderer, centerX, centerY, pitchLineAngle, pitchAngle, rollAngle);
             }
         }
     }
 
     void PitchLadder::drawSinglePitchLine(gfx::Renderer2D &renderer, float centerX, float centerY,
-                                          float pitchLineAngle, float currentPitch)
+                                          float pitchLineAngle, float currentPitch, float rollAngle)
     {
         // Diferencia entre la división deseada y el pitch actual
         float pitchDiff = pitchLineAngle - currentPitch;
@@ -94,14 +94,37 @@ namespace hud
         float lineWidthPx = ndcDimensionToPixels(lineWidthNDC, size_.x);
         float gapPx = ndcDimensionToPixels(NDC_GAP, size_.x);
 
+        // Precalcular seno y coseno para rotación
+        // Convertir roll a radianes (negativo porque la rotación en pantalla es horaria para roll positivo)
+        // Nota: En simuladores, roll positivo es alabeo a la derecha. Visualmente el horizonte debe girar a la IZQUIERDA.
+        float rollRad = glm::radians(-rollAngle);
+        float cosRoll = std::cos(rollRad);
+        float sinRoll = std::sin(rollRad);
+
+        // Función lambda para rotar un punto alrededor de (centerX, centerY)
+        auto rotatePoint = [&](glm::vec2 p) -> glm::vec2 {
+            float dx = p.x - centerX;
+            float dy = p.y - centerY;
+            return glm::vec2(
+                centerX + dx * cosRoll - dy * sinRoll,
+                centerY + dx * sinRoll + dy * cosRoll
+            );
+        };
+
         // Calcular extremos de las dos partes de la línea (cortada para dejar visible la mira)
         // Parte izquierda: desde -lineWidth hasta -gap
-        glm::vec2 leftStart(centerX - lineWidthPx, lineY);
-        glm::vec2 leftEnd(centerX - gapPx, lineY);
+        glm::vec2 leftStartRaw(centerX - lineWidthPx, lineY);
+        glm::vec2 leftEndRaw(centerX - gapPx, lineY);
 
         // Parte derecha: desde gap hasta lineWidth
-        glm::vec2 rightStart(centerX + gapPx, lineY);
-        glm::vec2 rightEnd(centerX + lineWidthPx, lineY);
+        glm::vec2 rightStartRaw(centerX + gapPx, lineY);
+        glm::vec2 rightEndRaw(centerX + lineWidthPx, lineY);
+
+        // Aplicar rotación
+        glm::vec2 leftStart = rotatePoint(leftStartRaw);
+        glm::vec2 leftEnd = rotatePoint(leftEndRaw);
+        glm::vec2 rightStart = rotatePoint(rightStartRaw);
+        glm::vec2 rightEnd = rotatePoint(rightEndRaw);
 
         // Dibujar las dos partes de la línea horizontal
         renderer.drawLine(leftStart, leftEnd, color_, 2.0f);
@@ -114,16 +137,18 @@ namespace hud
             bool isPositive = (pitchLineAngle > 0.0f);
 
             // Marcador izquierdo (vertical)
-            glm::vec2 leftMarkerStart(centerX - lineWidthPx, lineY);
-            glm::vec2 leftMarkerEnd(centerX - lineWidthPx,
+            glm::vec2 leftMarkerStartRaw(centerX - lineWidthPx, lineY);
+            glm::vec2 leftMarkerEndRaw(centerX - lineWidthPx,
                                     lineY + (isPositive ? markerSizePx : -markerSizePx));
-            renderer.drawLine(leftMarkerStart, leftMarkerEnd, color_, 2.0f);
-
+            
             // Marcador derecho (vertical)
-            glm::vec2 rightMarkerStart(centerX + lineWidthPx, lineY);
-            glm::vec2 rightMarkerEnd(centerX + lineWidthPx,
+            glm::vec2 rightMarkerStartRaw(centerX + lineWidthPx, lineY);
+            glm::vec2 rightMarkerEndRaw(centerX + lineWidthPx,
                                      lineY + (isPositive ? markerSizePx : -markerSizePx));
-            renderer.drawLine(rightMarkerStart, rightMarkerEnd, color_, 2.0f);
+
+            // Aplicar rotación a marcadores
+            renderer.drawLine(rotatePoint(leftMarkerStartRaw), rotatePoint(leftMarkerEndRaw), color_, 2.0f);
+            renderer.drawLine(rotatePoint(rightMarkerStartRaw), rotatePoint(rightMarkerEndRaw), color_, 2.0f);
 
             // Convención HUD: marcadores apuntan hacia arriba para pitch positivo (cielo)
             // y hacia abajo para pitch negativo (suelo) para transmitir sentido visual.

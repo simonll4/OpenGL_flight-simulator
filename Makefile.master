@@ -49,7 +49,7 @@ run: build
 	@./$(BUILD_DIR)/$(PROJECT_NAME)
 
 clean:
-	rm -f ./$(BUILD_DIR)/*
+	rm -rf $(BUILD_DIR)/*
 
 $(BUILD_DIR)/%.o : %.c
 	@mkdir -p $(dir $@)

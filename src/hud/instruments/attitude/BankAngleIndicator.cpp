@@ -96,9 +96,14 @@ namespace hud
                     glm::vec2 textPos(lineX, lineY + markHeightPx * 0.5f + textOffsetPx);
 
                     // Renderizar valor entero del ángulo usando el Renderer2D global
+                    // Normalizar el valor a mostrar para que esté en [-180, 180]
+                    int displayValue = static_cast<int>(lineAngle);
+                    while (displayValue > 180) displayValue -= 360;
+                    while (displayValue < -180) displayValue += 360;
+
                     gfx::TextRenderer::drawString(
                         renderer,
-                        std::to_string(static_cast<int>(lineAngle)),
+                        std::to_string(displayValue),
                         textPos,
                         glm::vec2(DIGIT_WIDTH, DIGIT_HEIGHT),
                         color_,
