@@ -7,6 +7,11 @@
 #include <iostream>
 #include <algorithm>
 
+extern "C"
+{
+#include <glad/glad.h>
+}
+
 namespace ui
 {
 
@@ -30,6 +35,14 @@ namespace ui
         selectedIndex_ = 0;
 
         renderer2D_.init(screenWidth, screenHeight);
+
+        const std::string fontPath = "assets/fonts/RobotoMono-Regular.ttf";
+        // Usar tamaño base mayor (96px) y atlas más grande para mejor calidad
+        menuFontReady_ = menuFont_.loadFromFile(fontPath, 96.0f, 2048);
+        if (!menuFontReady_)
+        {
+            std::cerr << "[MissionMenu] No se pudo cargar la fuente RobotoMono en " << fontPath << std::endl;
+        }
 
         std::cout << "✓ MissionMenu initialized" << std::endl;
     }
@@ -112,6 +125,9 @@ namespace ui
 
     void MissionMenu::render()
     {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         renderer2D_.begin();
 
         renderBackground();
@@ -121,6 +137,7 @@ namespace ui
         renderInstructions();
 
         renderer2D_.end();
+        glDisable(GL_BLEND);
         // flush() ya es llamado por end() internamente
     }
 
@@ -154,10 +171,9 @@ namespace ui
                              glm::vec4(0.2f, 0.6f, 1.0f, 1.0f), true);
 
         // Título simplificado - solo texto clave
-        glm::vec2 titlePos(screenWidth_ * 0.5f, barHeight * 0.35f);
-        gfx::TextRenderer::drawString(renderer2D_, "F16 SIMULATOR",
-                                      titlePos, glm::vec2(22, 40),
-                                      glm::vec4(0.3f, 0.8f, 1.0f, 1.0f), 28.0f);
+        glm::vec2 titlePos(screenWidth_ * 0.5f, barHeight * 0.38f);
+        drawMenuText("F16 FLIGHT SIM", titlePos, 34.0f,
+                     glm::vec4(0.3f, 0.8f, 1.0f, 1.0f), glm::vec2(0.5f, 0.5f));
     }
 
     void MissionMenu::renderMissionList()
@@ -224,9 +240,9 @@ namespace ui
             // Número de misión (grande y visible)
             std::string numStr = std::to_string(i + 1);
             glm::vec4 numColor = isSelected ? glm::vec4(1.0f, 1.0f, 0.3f, 1.0f) : glm::vec4(0.4f, 0.6f, 0.8f, 1.0f);
-            gfx::TextRenderer::drawString(renderer2D_, numStr,
-                                          glm::vec2(itemX + 30, itemY + 25),
-                                          glm::vec2(16, 28), numColor, 22.0f);
+            drawMenuText(numStr,
+                         glm::vec2(itemX + 32.0f, itemY + (itemHeight - 5) * 0.45f),
+                         30.0f, numColor, glm::vec2(0.0f, 0.5f));
 
             // Nombre de la misión (más legible)
             glm::vec4 textColor = isSelected ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : glm::vec4(0.75f, 0.8f, 0.9f, 1.0f);
@@ -238,9 +254,9 @@ namespace ui
                 displayName = displayName.substr(0, 22) + "...";
             }
 
-            gfx::TextRenderer::drawString(renderer2D_, displayName,
-                                          glm::vec2(itemX + 80, itemY + 18),
-                                          glm::vec2(11, 18), textColor, 14.0f);
+            drawMenuText(displayName,
+                         glm::vec2(itemX + 80.0f, itemY + 24.0f),
+                         20.0f, textColor, glm::vec2(0.0f, 0.5f));
 
             // Indicadores visuales de dificultad (estrellas como barras)
             float starX = itemX + 80;
@@ -255,17 +271,14 @@ namespace ui
 
             // Waypoints count (visual)
             float wpX = itemX + itemW - 100;
-            gfx::TextRenderer::drawString(renderer2D_,
-                                          std::to_string(mission->waypoints.size()),
-                                          glm::vec2(wpX, itemY + 30),
-                                          glm::vec2(14, 24),
-                                          glm::vec4(0.3f, 0.9f, 0.5f, 1.0f), 18.0f);
+            drawMenuText(std::to_string(mission->waypoints.size()),
+                         glm::vec2(wpX, itemY + 32.0f),
+                         22.0f, glm::vec4(0.3f, 0.9f, 0.5f, 1.0f), glm::vec2(0.0f, 0.5f));
 
             // Label "WP"
-            gfx::TextRenderer::drawString(renderer2D_, "WP",
-                                          glm::vec2(wpX + 40, itemY + 30),
-                                          glm::vec2(8, 14),
-                                          glm::vec4(0.5f, 0.7f, 0.5f, 0.8f), 10.0f);
+            drawMenuText("WP",
+                         glm::vec2(wpX + 38.0f, itemY + 32.0f),
+                         16.0f, glm::vec4(0.5f, 0.7f, 0.5f, 0.85f), glm::vec2(0.0f, 0.5f));
 
             itemY += itemHeight;
 
@@ -314,10 +327,9 @@ namespace ui
                              glm::vec2(btnW, btnH),
                              glm::vec4(0.3f, 1.0f, 0.5f, 1.0f), false);
 
-        gfx::TextRenderer::drawString(renderer2D_, "ENTER",
-                                      glm::vec2(btnX + btnW * 0.5f, btnY + btnH * 0.35f),
-                                      glm::vec2(14, 22),
-                                      glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 18.0f);
+        drawMenuText("ENTER",
+                     glm::vec2(btnX + btnW * 0.5f, btnY + btnH * 0.5f),
+                     20.0f, glm::vec4(1.0f), glm::vec2(0.5f, 0.5f));
     }
 
     void MissionMenu::renderInstructions()
@@ -326,16 +338,64 @@ namespace ui
         float instrY = screenHeight_ * 0.935f;
 
         // Fondo semi-transparente
-        renderer2D_.drawRect(glm::vec2(0, instrY - 5),
-                             glm::vec2(screenWidth_, 50),
-                             glm::vec4(0.02f, 0.04f, 0.06f, 0.9f), true);
+        renderer2D_.drawRect(glm::vec2(0, instrY - 6.0f),
+                             glm::vec2(screenWidth_, 60.0f),
+                             glm::vec4(0.03f, 0.05f, 0.08f, 0.92f), true);
 
         // Instrucciones simplificadas con indicadores visuales
         float xPos = screenWidth_ * 0.5f;
-        gfx::TextRenderer::drawString(renderer2D_, "W/S SELECT    ENTER START    ESC EXIT",
-                                      glm::vec2(xPos, instrY),
-                                      glm::vec2(9, 15),
-                                      glm::vec4(0.5f, 0.6f, 0.7f, 1.0f), 11.0f);
+        drawMenuText("W/S NAVEGAR    ENTER INICIAR    ESC SALIR",
+                     glm::vec2(xPos, instrY + 12.0f),
+                     18.0f, glm::vec4(0.7f, 0.8f, 0.95f, 1.0f), glm::vec2(0.5f, 0.5f));
+
+    }
+
+    glm::vec2 MissionMenu::menuTextSize(const std::string &text, float size, float lineSpacing) const
+    {
+        if (menuFontReady_)
+        {
+            return menuFont_.measureText(text, size, lineSpacing);
+        }
+        if (text.empty())
+        {
+            return glm::vec2(0.0f);
+        }
+
+        float approxWidth = static_cast<float>(text.size()) * size * 0.55f;
+        int lines = 1;
+        for (char c : text)
+        {
+            if (c == '\n')
+            {
+                ++lines;
+            }
+        }
+        float approxHeight = size * static_cast<float>(lines) * lineSpacing;
+        return glm::vec2(approxWidth, approxHeight);
+    }
+
+    void MissionMenu::drawMenuText(const std::string &text, const glm::vec2 &anchorPoint, float size,
+                                   const glm::vec4 &color, const glm::vec2 &anchor, float lineSpacing)
+    {
+        if (text.empty())
+        {
+            return;
+        }
+
+        glm::vec2 bounds = menuTextSize(text, size, lineSpacing);
+        glm::vec2 origin = anchorPoint - glm::vec2(bounds.x * anchor.x, bounds.y * anchor.y);
+
+        if (menuFontReady_)
+        {
+            menuFont_.drawText(renderer2D_, text, origin, size, color, lineSpacing);
+        }
+        else
+        {
+            glm::vec2 fallbackCenter = origin + glm::vec2(bounds.x * 0.5f, bounds.y * 0.5f);
+            glm::vec2 charSize(size * 0.6f, size);
+            float spacing = size * 0.65f;
+            gfx::TextRenderer::drawString(renderer2D_, text, fallbackCenter, charSize, color, spacing);
+        }
     }
 
     MenuResult MissionMenu::getResult() const

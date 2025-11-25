@@ -3,6 +3,7 @@
     {
       "id": "training_basic",
       "name": "BASIC FLIGHT TRAINING",
+      "difficulty": 1,
       "startPosition": { "x": 0.0, "y": 1500.0, "z": 0.0 },
       "waypoints": [
         { "name": "WPT-1", "position": { "x": 2000.0, "y": 1500.0, "z": 0.0 } },
@@ -12,6 +13,7 @@
     {
       "id": "training_advanced",
       "name": "ADVANCED NAVIGATION",
+      "difficulty": 2,
       "startPosition": { "x": 0.0, "y": 1500.0, "z": 0.0 },
       "waypoints": [
         { "name": "ALPHA",   "position": { "x": 8000.0,  "y": 1500.0, "z": 0.0 } },
@@ -25,6 +27,7 @@
     {
       "id": "recon_mountain",
       "name": "MOUNTAIN RECONNAISSANCE",
+      "difficulty": 3,
       "startPosition": { "x": 0.0, "y": 1500.0, "z": 0.0 },
       "waypoints": [
         { "name": "PEAK-1", "position": { "x": 10000.0, "y": 1800.0, "z": 0.0 } },
@@ -37,6 +40,7 @@
     {
       "id": "patrol_border",
       "name": "BORDER PATROL",
+      "difficulty": 3,
       "startPosition": { "x": 0.0, "y": 1500.0, "z": 8000.0 },
       "waypoints": [
         { "name": "NORTH-1", "position": { "x": -6000.0, "y": 1500.0, "z": 6000.0 } },
@@ -50,6 +54,7 @@
     {
       "id": "challenge_extreme",
       "name": "EXTREME CHALLENGE",
+      "difficulty": 5,
       "startPosition": { "x": 0.0, "y": 1500.0, "z": 10000.0 },
       "waypoints": [
         { "name": "GATE-1", "position": { "x": 3000.0,  "y": 1600.0, "z": 8000.0 } },
