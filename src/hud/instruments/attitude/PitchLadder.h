@@ -75,18 +75,19 @@ namespace hud
          * Calcula las líneas visibles alrededor del pitch actual y limita
          * la salida a ±2 divisiones para evitar saturar la pantalla.
          */
-        void drawPitchLines(gfx::Renderer2D &renderer, float centerX, float centerY, float pitchAngle);
+        void drawPitchLines(gfx::Renderer2D &renderer, float centerX, float centerY, float pitchAngle, float rollAngle);
 
         /**
          * @brief Dibuja una línea de pitch individual
          * @param pitchLineAngle Ángulo que representa esta línea (ej: 10°, 20°, etc.)
          * @param currentPitch Pitch actual del avión
+         * @param rollAngle Ángulo de roll actual para rotación
          *
          * Se encarga de posicionar, recortar con gap central y colocar
          * marcadores verticales que distinguen entre pitch positivo/negativo.
          */
         void drawSinglePitchLine(gfx::Renderer2D &renderer, float centerX, float centerY,
-                                 float pitchLineAngle, float currentPitch);
+                                 float pitchLineAngle, float currentPitch, float rollAngle);
 
         /**
          * @brief Convierte dimensión NDC a píxeles (sin inversión de Y)

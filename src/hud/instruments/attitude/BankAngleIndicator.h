@@ -42,14 +42,14 @@ namespace hud
         static constexpr float NDC_CENTER_Y = -0.85f;
 
         // Longitud de la barra base y pendiente fija para dar sensación de arco
-        static constexpr float NDC_LINE_WIDTH = 0.4f;
-        static constexpr float NDC_LINE_SLOPE = 0.05f; // Pendiente 5%
+        static constexpr float NDC_LINE_WIDTH = 0.45f; // Un poco más ancho
+        static constexpr float NDC_LINE_SLOPE = 0.15f; // Pendiente más pronunciada (15%) para menos "achatamiento"
 
         // Separación entre marcas (10°) y alturas diferenciadas para mayor/menor
-        static constexpr float NDC_LINE_SPACING = 0.045f;
+        static constexpr float NDC_LINE_SPACING = 0.05f; // Un poco más de espacio
         static constexpr float DEGREES_PER_LINE = 10.0f;
-        static constexpr float NDC_MARK_HEIGHT_MAJOR = 0.04f;
-        static constexpr float NDC_MARK_HEIGHT_MINOR = 0.025f;
+        static constexpr float NDC_MARK_HEIGHT_MAJOR = 0.06f; // Marcas más altas
+        static constexpr float NDC_MARK_HEIGHT_MINOR = 0.04f; // Marcas secundarias más visibles
 
         // Triángulo indicador (aguja)
         static constexpr float NDC_NEEDLE_OFFSET = 0.03f;

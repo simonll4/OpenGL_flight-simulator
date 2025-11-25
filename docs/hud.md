@@ -18,8 +18,8 @@ El HUD se implementa en `src/hud` y utiliza `gfx::Renderer2D` para dibujar un ov
 | **Altimeter** | `hud/instruments/flight/Altimeter.*` | `altitude` | Tape vertical derecho cada 100 ft con lectura central y marca lateral. |
 | **VerticalSpeedIndicator** | `hud/instruments/flight/VerticalSpeedIndicator.*` | `verticalSpeed` | Escala fija ±6000 ft/min, indicador triangular y display compactado (/100). |
 | **WaypointIndicator (HSI)** | `hud/instruments/navigation/WaypointIndicator.*` | `heading`, `waypointBearing`, `targetWaypoint`, `position` | Rosa de 360° con flecha magenta y medidor vertical de diferencia de altitud respecto al waypoint activo. |
-| **BankAngleIndicator** | `hud/instruments/attitude/BankAngleIndicator.*` | `roll` | Línea inclinada con 5 marcas móviles y aguja fija para monitorear alabeo. |
-| **PitchLadder** | `hud/instruments/attitude/PitchLadder.*` | `pitch` | Escalera central con líneas cada 10°, mira fija y marcadores verticales. |
+| **BankAngleIndicator** | `hud/instruments/attitude/BankAngleIndicator.*` | `roll` | Línea inclinada con 5 marcas móviles y aguja fija. Diseño refinado con pendiente y grosor ajustados. |
+| **PitchLadder** | `hud/instruments/attitude/PitchLadder.*` | `pitch`, `roll` | Escalera central con líneas cada 10°, mira fija y marcadores verticales. Rota con el ángulo de alabeo. |
 
 ## 3. Convenciones de Diseño
 - **Color**: `glm::vec4(0.0f, 1.0f, 0.4f, 0.95f)` para mantener el aspecto HUD clásico.
