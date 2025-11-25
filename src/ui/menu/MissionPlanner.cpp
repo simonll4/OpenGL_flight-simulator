@@ -18,6 +18,11 @@ extern "C"
 #include <fstream>
 #include <iostream>
 
+extern "C"
+{
+#include <glad/glad.h>
+}
+
 namespace ui
 {
 
@@ -53,6 +58,13 @@ namespace ui
         screenHeight_ = screenHeight;
         updateLayout();
         // El renderizador compartido ya debería estar inicializado en otro lugar
+        const std::string fontPath = "assets/fonts/RobotoMono-Regular.ttf";
+        // Usar tamaño base mayor (96px) para mejor calidad al escalar
+        plannerFontReady_ = plannerFont_.loadFromFile(fontPath, 96.0f, 2048);
+        if (!plannerFontReady_)
+        {
+            std::cerr << "[MissionPlanner] No se pudo cargar la fuente RobotoMono en " << fontPath << std::endl;
+        }
     }
 
     void MissionPlanner::setScreenSize(int width, int height)
@@ -163,6 +175,9 @@ namespace ui
             return;
         }
         // Dibujar todos los elementos
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         renderer_->begin();
         renderBackground();
         renderToolbar();
@@ -172,6 +187,7 @@ namespace ui
         renderInstructions();
         renderStartButton();
         renderer_->end();
+        glDisable(GL_BLEND);
         // flush() ya es llamado por end() internamente
     }
 
@@ -405,15 +421,25 @@ namespace ui
         // Fondo general
         glm::vec4 baseColor(0.02f, 0.03f, 0.05f, 1.0f);
         renderer_->drawRect(glm::vec2(0.0f), glm::vec2(static_cast<float>(screenWidth_), static_cast<float>(screenHeight_)), baseColor, true);
-        // Franja superior
+        
+        // Franja superior con gradiente visual
         glm::vec4 headerColor(0.025f, 0.045f, 0.07f, 1.0f);
         float headerHeight = screenHeight_ * 0.08f;
         renderer_->drawRect(glm::vec2(0.0f, 0.0f), glm::vec2(static_cast<float>(screenWidth_), headerHeight), headerColor, true);
-        // Título
-        gfx::TextRenderer::drawString(*renderer_, "MISSION PLANNER", glm::vec2(screenWidth_ * 0.5f, headerHeight * 0.4f),
-                                      glm::vec2(18.0f, 24.0f), glm::vec4(0.4f, 0.8f, 1.0f, 1.0f), 20.0f);
-        gfx::TextRenderer::drawString(*renderer_, "Define rutas, alturas y secuencia", glm::vec2(screenWidth_ * 0.5f, headerHeight * 0.75f),
-                                      glm::vec2(8.0f, 12.0f), glm::vec4(0.75f, 0.85f, 0.95f, 1.0f), 9.5f);
+        
+        // Línea decorativa inferior del header
+        glm::vec4 accentLine(0.15f, 0.55f, 0.85f, 0.8f);
+        renderer_->drawRect(glm::vec2(0.0f, headerHeight - 2.0f), glm::vec2(static_cast<float>(screenWidth_), 2.0f), accentLine, true);
+        
+        // Título principal centrado verticalmente en el header
+        glm::vec2 titlePos(screenWidth_ * 0.5f, headerHeight * 0.38f);
+        glm::vec2 titleShadow(2.0f, 2.0f);
+        // Sombra del título
+        drawPlannerText("MISSION PLANNER", titlePos + titleShadow, 32.0f,
+                        glm::vec4(0.0f, 0.0f, 0.0f, 0.5f), glm::vec2(0.5f, 0.5f));
+        // Título principal con color cyan brillante
+        drawPlannerText("MISSION PLANNER", titlePos,
+                        32.0f, glm::vec4(0.55f, 0.92f, 1.0f, 1.0f), glm::vec2(0.5f, 0.5f));
     }
 
     // -----------------------------------------------------------------------------
@@ -442,12 +468,12 @@ namespace ui
         std::string right = "Viento " + formatFloat(workingMission_.environment.windSpeed, 1) + " m/s  @" +
                             formatFloat(workingMission_.environment.windDirection, 0) + "°";
         // Dibujar textos con alineación
-        gfx::TextRenderer::drawString(*renderer_, left, pos + glm::vec2(14.0f, size.y * 0.5f),
-                                      glm::vec2(7.0f, 11.0f), glm::vec4(0.75f, 0.85f, 1.0f, 1.0f), 8.5f);
-        gfx::TextRenderer::drawString(*renderer_, center, pos + glm::vec2(size.x * 0.5f, size.y * 0.5f),
-                                      glm::vec2(7.0f, 11.0f), glm::vec4(0.6f, 0.9f, 0.8f, 1.0f), 8.5f);
-        gfx::TextRenderer::drawString(*renderer_, right, pos + glm::vec2(size.x - 14.0f, size.y * 0.5f),
-                                      glm::vec2(7.0f, 11.0f), glm::vec4(0.8f, 0.8f, 0.95f, 1.0f), 8.5f);
+        drawPlannerText(left, pos + glm::vec2(18.0f, size.y * 0.5f), 16.0f,
+                        glm::vec4(0.75f, 0.85f, 1.0f, 1.0f), glm::vec2(0.0f, 0.5f));
+        drawPlannerText(center, pos + glm::vec2(size.x * 0.5f, size.y * 0.5f), 16.0f,
+                        glm::vec4(0.6f, 0.9f, 0.8f, 1.0f), glm::vec2(0.5f, 0.5f));
+        drawPlannerText(right, pos + glm::vec2(size.x - 18.0f, size.y * 0.5f), 16.0f,
+                        glm::vec4(0.8f, 0.8f, 0.95f, 1.0f), glm::vec2(1.0f, 0.5f));
     }
 
     // -----------------------------------------------------------------------------
@@ -485,14 +511,14 @@ namespace ui
         glm::vec4 startColor(0.15f, 0.9f, 0.4f, 1.0f);
         renderer_->drawCircle(startScreen, 10.0f, startColor, 32, true);
         renderer_->drawCircle(startScreen, 12.0f, startColor, 32, false);
-        gfx::TextRenderer::drawString(*renderer_, "START", startScreen + glm::vec2(0.0f, -18.0f),
-                                      glm::vec2(7.0f, 10.0f), glm::vec4(0.75f, 0.9f, 1.0f, 1.0f), 8.0f);
+        drawPlannerText("START", startScreen + glm::vec2(0.0f, -18.0f), 15.0f,
+                        glm::vec4(0.75f, 0.9f, 1.0f, 1.0f), glm::vec2(0.5f, 1.0f));
         // Mensaje de ayuda si no hay waypoints
         if (workingMission_.waypoints.empty())
         {
             glm::vec2 hintPos(mapOrigin_.x + mapSize_.x * 0.5f, mapOrigin_.y + mapSize_.y * 0.55f);
-            gfx::TextRenderer::drawString(*renderer_, "Haz clic en el mapa para insertar el primer waypoint",
-                                          hintPos, glm::vec2(8.0f, 12.0f), glm::vec4(0.85f, 0.9f, 1.0f, 0.9f), 9.0f);
+            drawPlannerText("Haz clic en el mapa para insertar el primer waypoint", hintPos,
+                            18.0f, glm::vec4(0.85f, 0.9f, 1.0f, 0.9f), glm::vec2(0.5f, 0.5f));
         }
         // Dibujar cada waypoint
         for (size_t i = 0; i < workingMission_.waypoints.size(); ++i)
@@ -510,12 +536,12 @@ namespace ui
             renderer_->drawCircle(p, innerRadius, baseColor, 32, true);
             // Etiquetas
             std::string label = "WP" + std::to_string(static_cast<int>(i + 1));
-            gfx::TextRenderer::drawString(*renderer_, label, p + glm::vec2(0.0f, -14.0f),
-                                          glm::vec2(6.5f, 9.0f), glm::vec4(0.9f, 0.95f, 1.0f, 1.0f), 7.0f);
+            drawPlannerText(label, p + glm::vec2(0.0f, -12.0f), 16.0f,
+                            glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), glm::vec2(0.5f, 1.0f));
             // Altitud debajo
             std::string altStr = std::to_string(static_cast<int>(std::round(wp.position.y))) + " m";
-            gfx::TextRenderer::drawString(*renderer_, altStr, p + glm::vec2(0.0f, 12.0f),
-                                          glm::vec2(5.5f, 8.0f), glm::vec4(0.7f, 0.85f, 1.0f, 0.9f), 6.5f);
+            drawPlannerText(altStr, p + glm::vec2(0.0f, 12.0f), 13.0f,
+                            glm::vec4(0.96f, 0.95f, 0.85f, 1.0f), glm::vec2(0.5f, 0.0f));
         }
     }
 
@@ -557,9 +583,9 @@ namespace ui
         if (nodes.size() < 2 || distances.back() <= 0.0f)
         {
             // Mensaje si no hay suficiente información para mostrar
-            gfx::TextRenderer::drawString(*renderer_, "Agrega waypoints para visualizar el perfil",
-                                          profileOrigin_ + glm::vec2(profileSize_.x * 0.5f, profileSize_.y * 0.5f),
-                                          glm::vec2(8.0f, 12.0f), glm::vec4(0.7f, 0.8f, 0.9f, 0.9f), 9.0f);
+            drawPlannerText("Agrega waypoints para visualizar el perfil",
+                            profileOrigin_ + glm::vec2(profileSize_.x * 0.5f, profileSize_.y * 0.5f),
+                            18.0f, glm::vec4(0.7f, 0.8f, 0.9f, 0.9f), glm::vec2(0.5f, 0.5f));
             return;
         }
         float totalDistance = distances.back();
@@ -595,8 +621,8 @@ namespace ui
             float altVal = minAlt + t * range;
             std::ostringstream oss;
             oss << static_cast<int>(std::round(altVal)) << " m";
-            gfx::TextRenderer::drawString(*renderer_, oss.str(), glm::vec2(graphOrigin.x - 40.0f, y),
-                                          glm::vec2(6.0f, 9.0f), glm::vec4(0.7f, 0.85f, 1.0f, 0.9f), 7.0f);
+            drawPlannerText(oss.str(), glm::vec2(graphOrigin.x - 12.0f, y), 13.0f,
+                            glm::vec4(0.7f, 0.85f, 1.0f, 0.9f), glm::vec2(1.0f, 0.5f));
         }
         // Líneas verticales y etiquetas de distancia
         int vLines = 4;
@@ -609,8 +635,8 @@ namespace ui
             float distVal = (t * totalDistance) / 1000.0f;
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(1) << distVal << " km";
-            gfx::TextRenderer::drawString(*renderer_, oss.str(), glm::vec2(x, graphOrigin.y + 16.0f),
-                                          glm::vec2(6.0f, 9.0f), glm::vec4(0.7f, 0.85f, 1.0f, 0.9f), 7.0f);
+            drawPlannerText(oss.str(), glm::vec2(x, graphOrigin.y + 18.0f), 13.0f,
+                            glm::vec4(0.7f, 0.85f, 1.0f, 0.9f), glm::vec2(0.5f, 0.0f));
         }
         // Dibujar curvas y nodos
         glm::vec2 prevPt = glm::vec2(graphOrigin.x, graphOrigin.y - ((nodes[0].y - minAlt) / range) * graphSize.y);
@@ -642,13 +668,13 @@ namespace ui
             if (i > 0)
             {
                 std::string label = "WP" + std::to_string(static_cast<int>(i));
-                gfx::TextRenderer::drawString(*renderer_, label, currentPt + glm::vec2(0.0f, -14.0f),
-                                              glm::vec2(5.5f, 8.0f), glm::vec4(0.9f, 0.95f, 1.0f, 1.0f), 6.5f);
+                drawPlannerText(label, currentPt + glm::vec2(0.0f, -11.0f), 13.5f,
+                                glm::vec4(0.98f, 0.99f, 1.0f, 1.0f), glm::vec2(0.5f, 1.0f));
             }
             else
             {
-                gfx::TextRenderer::drawString(*renderer_, "S", currentPt + glm::vec2(0.0f, -14.0f),
-                                              glm::vec2(5.5f, 8.0f), glm::vec4(0.9f, 0.95f, 1.0f, 1.0f), 6.5f);
+                drawPlannerText("S", currentPt + glm::vec2(0.0f, -11.0f), 13.5f,
+                                glm::vec4(0.98f, 0.99f, 1.0f, 1.0f), glm::vec2(0.5f, 1.0f));
             }
         }
     }
@@ -664,16 +690,16 @@ namespace ui
         renderer_->drawRect(storyboardOrigin_, storyboardSize_, panelBg, true);
         renderer_->drawRect(storyboardOrigin_, storyboardSize_, panelBorder, false);
         // Encabezados
-        glm::vec2 headerPos = storyboardOrigin_ + glm::vec2(storyboardSize_.x * 0.5f, 18.0f);
-        gfx::TextRenderer::drawString(*renderer_, "STORYBOARD", headerPos,
-                                      glm::vec2(9.0f, 13.0f), glm::vec4(0.55f, 0.95f, 1.0f, 1.0f), 11.0f);
+        glm::vec2 headerPos = storyboardOrigin_ + glm::vec2(storyboardSize_.x * 0.5f, 28.0f);
+        drawPlannerText("STORYBOARD", headerPos, 22.0f,
+                        glm::vec4(0.55f, 0.95f, 1.0f, 1.0f), glm::vec2(0.5f, 0.5f));
         // Subtítulo con información general
         std::string missionName = workingMission_.name.empty() ? "Misión sin nombre" : workingMission_.name;
         std::string overview = missionName + "  |  " + workingMission_.category + "  |  " +
                                workingMission_.environment.weather + "  @ " + workingMission_.environment.timeOfDay;
-        gfx::TextRenderer::drawString(*renderer_, overview,
-                                      storyboardOrigin_ + glm::vec2(storyboardSize_.x * 0.5f, 38.0f),
-                                      glm::vec2(7.0f, 11.0f), glm::vec4(0.8f, 0.85f, 0.9f, 0.95f), 8.5f);
+        drawPlannerText(overview,
+                        storyboardOrigin_ + glm::vec2(storyboardSize_.x * 0.5f, 58.0f),
+                        17.0f, glm::vec4(0.9f, 0.92f, 0.96f, 1.0f), glm::vec2(0.5f, 0.5f));
         // Calcular tarjetas visibles
         size_t visible = std::min(maxVisibleCards(), workingMission_.waypoints.size());
         if (visible == 0)
@@ -726,11 +752,14 @@ namespace ui
             // Franja lateral de color
             renderer_->drawRect(pos, glm::vec2(6.0f, size.y), accent, true);
             // Texto principal: número y nombre
-            std::string label = "WP" + std::to_string(static_cast<int>(i + 1)) + "  " +
-                                (workingMission_.waypoints[i].name.empty() ? "VECTOR" : workingMission_.waypoints[i].name);
-            gfx::TextRenderer::drawString(*renderer_, label,
-                                          pos + glm::vec2(size.x * 0.5f, 16.0f),
-                                          glm::vec2(7.0f, 11.0f), glm::vec4(0.9f, 0.95f, 1.0f, 1.0f), 9.5f);
+        std::string label = "WP" + std::to_string(static_cast<int>(i + 1)) + "  " +
+                            (workingMission_.waypoints[i].name.empty() ? "VECTOR" : workingMission_.waypoints[i].name);
+        glm::vec2 labelPos = pos + glm::vec2(size.x * 0.5f, 20.0f);
+        glm::vec4 nameColor = isSel ? glm::vec4(1.0f) : glm::vec4(0.92f, 0.96f, 1.0f, 0.96f);
+        drawPlannerText(label, labelPos + glm::vec2(1.0f, 1.0f), 20.0f,
+                        glm::vec4(0.0f, 0.0f, 0.0f, 0.4f), glm::vec2(0.5f, 0.0f));
+        drawPlannerText(label, labelPos, 20.0f,
+                        nameColor, glm::vec2(0.5f, 0.0f));
             // Métricas: altitud, distancia del tramo, rumbo
             glm::vec2 prevPosXZ;
             if (i == 0)
@@ -748,10 +777,12 @@ namespace ui
             float headingDeg = glm::degrees(headingRad);
             if (headingDeg < 0.0f)
                 headingDeg += 360.0f;
-            std::string metrics = "ALT " + std::to_string(static_cast<int>(std::round(workingMission_.waypoints[i].position.y))) + " m" + "   |   DIST " + formatFloat(legKm, 1) + " km" + "   |   HDG " + std::to_string(static_cast<int>(std::round(headingDeg))) + "°";
-            gfx::TextRenderer::drawString(*renderer_, metrics,
-                                          pos + glm::vec2(size.x * 0.5f, 38.0f),
-                                          glm::vec2(6.5f, 9.5f), glm::vec4(0.7f, 0.85f, 1.0f, 1.0f), 7.5f);
+        std::string metrics = "ALT " + std::to_string(static_cast<int>(std::round(workingMission_.waypoints[i].position.y))) + " m" + "   |   DIST " + formatFloat(legKm, 1) + " km" + "   |   HDG " + std::to_string(static_cast<int>(std::round(headingDeg))) + "°";
+        glm::vec2 metricsPos = pos + glm::vec2(size.x * 0.5f, 44.0f);
+        drawPlannerText(metrics, metricsPos + glm::vec2(0.8f, 0.8f), 16.5f,
+                        glm::vec4(0.0f, 0.0f, 0.0f, 0.35f), glm::vec2(0.5f, 0.0f));
+        drawPlannerText(metrics, metricsPos, 16.5f,
+                        glm::vec4(0.89f, 0.95f, 1.0f, 1.0f), glm::vec2(0.5f, 0.0f));
             // Línea de progreso relativa a la misión completa
             float progression = cumulative[i + 1] / totalDistance;
             glm::vec2 barPos = pos + glm::vec2(18.0f, size.y - 20.0f);
@@ -765,9 +796,9 @@ namespace ui
         {
             size_t remaining = total - visible;
             std::string overflow = "+" + std::to_string(remaining) + " waypoints ocultos";
-            gfx::TextRenderer::drawString(*renderer_, overflow,
-                                          storyboardOrigin_ + glm::vec2(storyboardSize_.x * 0.5f, storyboardSize_.y - buttonSize_.y - 24.0f),
-                                          glm::vec2(6.5f, 9.5f), glm::vec4(0.9f, 0.6f, 0.2f, 1.0f), 7.5f);
+            drawPlannerText(overflow,
+                            storyboardOrigin_ + glm::vec2(storyboardSize_.x * 0.5f, storyboardSize_.y - buttonSize_.y - 24.0f),
+                            14.0f, glm::vec4(0.9f, 0.6f, 0.2f, 1.0f), glm::vec2(0.5f, 0.5f));
         }
     }
 
@@ -776,10 +807,13 @@ namespace ui
     // -----------------------------------------------------------------------------
     void MissionPlanner::renderInstructions()
     {
-        std::string instr = "MAPA: Click izquierdo inserta/mueve  |  Click derecho elimina  |  WASD desplaza  |  R/F sube/baja altitud  |  ENTER inicia  |  ESC sale";
-        gfx::TextRenderer::drawString(*renderer_, instr,
-                                      glm::vec2(screenWidth_ * 0.5f, screenHeight_ * 0.94f),
-                                      glm::vec2(8.0f, 12.0f), glm::vec4(0.6f, 0.6f, 0.6f, 1.0f), 9.0f);
+        std::string instr1 = "MAPA: click izquierdo inserta/mueve  |  derecho elimina  |  WASD desplaza";
+        std::string instr2 = "ALTITUD: R sube  |  F baja  |  ENTER inicia misión  |  ESC regresa";
+        glm::vec4 instrColor(0.78f, 0.82f, 0.9f, 1.0f);
+        drawPlannerText(instr1, glm::vec2(screenWidth_ * 0.5f, screenHeight_ * 0.925f), 18.0f,
+                        instrColor, glm::vec2(0.5f, 0.5f));
+        drawPlannerText(instr2, glm::vec2(screenWidth_ * 0.5f, screenHeight_ * 0.955f), 18.0f,
+                        instrColor, glm::vec2(0.5f, 0.5f));
     }
 
     // -----------------------------------------------------------------------------
@@ -800,15 +834,58 @@ namespace ui
         renderer_->drawRect(buttonPos_, buttonSize_, glm::vec4(0.05f, 0.12f, 0.08f, 1.0f), false);
         // Texto principal
         std::string label = validateMission() ? "INICIAR MISIÓN" : "AGREGA WAYPOINTS";
-        gfx::TextRenderer::drawString(*renderer_, label,
-                                      buttonPos_ + glm::vec2(buttonSize_.x * 0.5f, buttonSize_.y * 0.35f),
-                                      glm::vec2(9.5f, 13.5f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 11.0f);
+        drawPlannerText(label,
+                        buttonPos_ + glm::vec2(buttonSize_.x * 0.5f, buttonSize_.y * 0.38f),
+                        22.0f, glm::vec4(1.0f), glm::vec2(0.5f, 0.5f));
         // Texto secundario
         std::string sub = validateMission() ? "Validación OK - listo para volar"
                                             : "Se necesita al menos un waypoint";
-        gfx::TextRenderer::drawString(*renderer_, sub,
-                                      buttonPos_ + glm::vec2(buttonSize_.x * 0.5f, buttonSize_.y * 0.70f),
-                                      glm::vec2(6.5f, 9.5f), glm::vec4(0.85f, 0.95f, 1.0f, 0.9f), 7.5f);
+        drawPlannerText(sub,
+                        buttonPos_ + glm::vec2(buttonSize_.x * 0.5f, buttonSize_.y * 0.72f),
+                        15.0f, glm::vec4(0.85f, 0.95f, 1.0f, 0.9f), glm::vec2(0.5f, 0.5f));
+    }
+
+    glm::vec2 MissionPlanner::plannerTextSize(const std::string &text, float size, float lineSpacing) const
+    {
+        if (plannerFontReady_)
+        {
+            return plannerFont_.measureText(text, size, lineSpacing);
+        }
+        float approxWidth = static_cast<float>(text.size()) * size * 0.55f;
+        int lines = 1;
+        for (char c : text)
+        {
+            if (c == '\n')
+            {
+                ++lines;
+            }
+        }
+        float approxHeight = size * lines * lineSpacing;
+        return glm::vec2(approxWidth, approxHeight);
+    }
+
+    void MissionPlanner::drawPlannerText(const std::string &text, const glm::vec2 &anchorPoint, float size,
+                                         const glm::vec4 &color, const glm::vec2 &anchor, float lineSpacing)
+    {
+        if (!renderer_ || text.empty())
+        {
+            return;
+        }
+
+        glm::vec2 bounds = plannerTextSize(text, size, lineSpacing);
+        glm::vec2 origin = anchorPoint - glm::vec2(bounds.x * anchor.x, bounds.y * anchor.y);
+
+        if (plannerFontReady_)
+        {
+            plannerFont_.drawText(*renderer_, text, origin, size, color, lineSpacing);
+        }
+        else
+        {
+            glm::vec2 fallbackCenter = origin + glm::vec2(bounds.x * 0.5f, bounds.y * 0.5f);
+            glm::vec2 charSize(size * 0.6f, size);
+            float spacing = size * 0.65f;
+            gfx::TextRenderer::drawString(*renderer_, text, fallbackCenter, charSize, color, spacing);
+        }
     }
 
     // -----------------------------------------------------------------------------
@@ -865,7 +942,7 @@ namespace ui
     size_t MissionPlanner::maxVisibleCards() const
     {
         float spacing = 12.0f;
-        float yStart = storyboardOrigin_.y + 60.0f;
+        float yStart = storyboardOrigin_.y + 90.0f;
         float yEnd = buttonPos_.y - 24.0f;
         float usable = std::max(0.0f, yEnd - yStart);
         if (usable <= 0.0f)
@@ -888,7 +965,7 @@ namespace ui
             return false;
         }
         float spacing = 12.0f;
-        float yStart = storyboardOrigin_.y + 60.0f;
+        float yStart = storyboardOrigin_.y + 90.0f;
         float yEnd = buttonPos_.y - 24.0f;
         pos = glm::vec2(storyboardOrigin_.x + 16.0f, yStart + index * (storyboardCardHeight_ + spacing));
         size = glm::vec2(storyboardSize_.x - 32.0f, storyboardCardHeight_);

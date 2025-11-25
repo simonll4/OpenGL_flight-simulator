@@ -12,6 +12,11 @@
 #include <iostream>
 #include <cmath>
 
+extern "C"
+{
+#include <glad/glad.h>
+}
+
 namespace ui
 {
 
@@ -26,6 +31,14 @@ namespace ui
         screenHeight_ = screenHeight;
         renderer_.init(screenWidth_, screenHeight_);
         rendererInitialized_ = true;
+
+        const std::string fontPath = "assets/fonts/RobotoMono-Regular.ttf";
+        // Usar tamaño base mayor (96px) y atlas más grande para mejor calidad
+        overlayFontReady_ = overlayFont_.loadFromFile(fontPath, 96.0f, 2048);
+        if (!overlayFontReady_)
+        {
+            std::cerr << "[MissionOverlay] No se pudo cargar la fuente RobotoMono en " << fontPath << std::endl;
+        }
 
         std::cout << "[MissionOverlay] Inicializado (modo consola)" << std::endl;
     }
@@ -122,6 +135,9 @@ namespace ui
             return;
         }
 
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         renderer_.begin();
         drawBackground(fadeAlpha_);
 
@@ -135,6 +151,7 @@ namespace ui
         }
 
         renderer_.end();
+        glDisable(GL_BLEND);
     }
 
     void MissionOverlay::update(float dt)
@@ -262,13 +279,8 @@ namespace ui
 
         const glm::vec2 titlePos(panelX + panelW * 0.5f, panelY + 40.0f);
         const glm::vec4 titleColor(0.35f, 0.85f, 1.0f, 1.0f);
-        gfx::TextRenderer::drawString(
-            renderer_,
-            missionName_.empty() ? "MISSION BRIEFING" : missionName_,
-            titlePos,
-            glm::vec2(16.0f, 26.0f),
-            titleColor,
-            20.0f);
+        drawOverlayText(missionName_.empty() ? "MISSION BRIEFING" : missionName_,
+                        titlePos, 28.0f, titleColor, glm::vec2(0.5f, 0.5f));
 
         auto lines = splitLines(briefingText_);
         if (lines.empty())
@@ -280,13 +292,9 @@ namespace ui
         const glm::vec4 bodyColor(0.85f, 0.92f, 1.0f, 0.95f);
         for (const auto &line : lines)
         {
-            gfx::TextRenderer::drawString(
-                renderer_,
-                line.empty() ? " " : line,
-                glm::vec2(panelX + panelW * 0.5f, textY),
-                glm::vec2(9.0f, 14.0f),
-                bodyColor,
-                11.0f);
+            drawOverlayText(line.empty() ? " " : line,
+                            glm::vec2(panelX + panelW * 0.5f, textY),
+                            16.0f, bodyColor, glm::vec2(0.5f, 0.0f));
             textY += 18.0f;
             if (textY > panelY + panelH - 80.0f)
             {
@@ -296,13 +304,9 @@ namespace ui
 
         float blinkAlpha = 0.55f + 0.45f * std::sin(blinkTimer_ * 3.0f);
         glm::vec4 promptColor(0.4f, 1.0f, 0.6f, blinkAlpha);
-        gfx::TextRenderer::drawString(
-            renderer_,
-            "ENTER  LISTO PARA DESPEGAR",
-            glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 40.0f),
-            glm::vec2(11.0f, 18.0f),
-            promptColor,
-            14.0f);
+        drawOverlayText("ENTER  LISTO PARA DESPEGAR",
+                        glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 36.0f),
+                        18.0f, promptColor, glm::vec2(0.5f, 0.5f));
     }
 
     void MissionOverlay::renderCompletion()
@@ -315,26 +319,18 @@ namespace ui
         drawBox(panelX, panelY, panelW, panelH);
 
         const glm::vec4 titleColor(1.0f, 0.9f, 0.5f, 1.0f);
-        gfx::TextRenderer::drawString(
-            renderer_,
-            missionName_.empty() ? "MISION COMPLETADA" : missionName_,
-            glm::vec2(panelX + panelW * 0.5f, panelY + 38.0f),
-            glm::vec2(15.0f, 24.0f),
-            titleColor,
-            18.0f);
+        drawOverlayText(missionName_.empty() ? "MISION COMPLETADA" : missionName_,
+                        glm::vec2(panelX + panelW * 0.5f, panelY + 40.0f),
+                        26.0f, titleColor, glm::vec2(0.5f, 0.5f));
 
         auto metricsLines = splitLines(metricsText_);
         float textY = panelY + 85.0f;
         const glm::vec4 metricsColor(0.85f, 0.95f, 1.0f, 0.95f);
         for (const auto &line : metricsLines)
         {
-            gfx::TextRenderer::drawString(
-                renderer_,
-                line.empty() ? " " : line,
-                glm::vec2(panelX + panelW * 0.5f, textY),
-                glm::vec2(10.0f, 16.0f),
-                metricsColor,
-                13.0f);
+            drawOverlayText(line.empty() ? " " : line,
+                            glm::vec2(panelX + panelW * 0.5f, textY),
+                            18.0f, metricsColor, glm::vec2(0.5f, 0.0f));
             textY += 20.0f;
         }
 
@@ -347,13 +343,7 @@ namespace ui
             glm::vec4 color = highlighted
                                   ? glm::vec4(0.4f, 0.9f, 1.0f, blinkAlpha)
                                   : glm::vec4(0.7f, 0.8f, 0.9f, 0.85f);
-            gfx::TextRenderer::drawString(
-                renderer_,
-                label,
-                glm::vec2(x, y),
-                glm::vec2(11.0f, 18.0f),
-                color,
-                14.0f);
+            drawOverlayText(label, glm::vec2(x, y), 18.0f, color, glm::vec2(0.5f, 0.5f));
         };
 
         const float centerX = panelX + panelW * 0.5f;
@@ -366,13 +356,9 @@ namespace ui
                    optionY + optionSpacing,
                    selectedOption_ == 1);
 
-        gfx::TextRenderer::drawString(
-            renderer_,
-            "ESC  SALIR DEL SIMULADOR",
-            glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 40.0f),
-            glm::vec2(9.0f, 14.0f),
-            glm::vec4(0.65f, 0.75f, 0.9f, 0.85f),
-            11.0f);
+        drawOverlayText("ESC  SALIR DEL SIMULADOR",
+                        glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 36.0f),
+                        16.0f, glm::vec4(0.65f, 0.75f, 0.9f, 0.85f), glm::vec2(0.5f, 0.5f));
     }
 
     void MissionOverlay::drawBackground(float alpha)
@@ -424,6 +410,54 @@ namespace ui
             lines.emplace_back();
         }
         return lines;
+    }
+
+    glm::vec2 MissionOverlay::overlayTextSize(const std::string &text, float size, float lineSpacing) const
+    {
+        if (overlayFontReady_)
+        {
+            return overlayFont_.measureText(text, size, lineSpacing);
+        }
+        if (text.empty())
+        {
+            return glm::vec2(0.0f);
+        }
+
+        float approxWidth = static_cast<float>(text.size()) * size * 0.55f;
+        int lines = 1;
+        for (char c : text)
+        {
+            if (c == '\n')
+            {
+                ++lines;
+            }
+        }
+        float approxHeight = size * static_cast<float>(lines) * lineSpacing;
+        return glm::vec2(approxWidth, approxHeight);
+    }
+
+    void MissionOverlay::drawOverlayText(const std::string &text, const glm::vec2 &anchorPoint, float size,
+                                         const glm::vec4 &color, const glm::vec2 &anchor, float lineSpacing)
+    {
+        if (text.empty())
+        {
+            return;
+        }
+
+        glm::vec2 bounds = overlayTextSize(text, size, lineSpacing);
+        glm::vec2 origin = anchorPoint - glm::vec2(bounds.x * anchor.x, bounds.y * anchor.y);
+
+        if (overlayFontReady_)
+        {
+            overlayFont_.drawText(renderer_, text, origin, size, color, lineSpacing);
+        }
+        else
+        {
+            glm::vec2 fallbackCenter = origin + glm::vec2(bounds.x * 0.5f, bounds.y * 0.5f);
+            glm::vec2 charSize(size * 0.6f, size);
+            float spacing = size * 0.65f;
+            gfx::TextRenderer::drawString(renderer_, text, fallbackCenter, charSize, color, spacing);
+        }
     }
 
 } // namespace ui

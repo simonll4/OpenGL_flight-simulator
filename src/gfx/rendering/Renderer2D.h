@@ -51,6 +51,9 @@ namespace gfx
         void end();
         void flush();
 
+        /// Cambia el atlas/textura activa para las primitivas batcheadas.
+        void setTexture(GLuint textureId);
+
         // Primitivas básicas
         void drawLine(const glm::vec2 &start, const glm::vec2 &end, const glm::vec4 &color, float thickness = 1.0f);
         void drawRect(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, bool filled = true);
@@ -64,6 +67,8 @@ namespace gfx
         // Primitivas adicionales para instrumentos HUD de actitud
         void drawPolyline(const std::vector<glm::vec2> &points, const glm::vec4 &color, float thickness = 1.0f, bool closed = false);
         void drawTriangle(const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec4 &color, bool filled = false);
+        void drawTexturedQuad(const glm::vec2 &topLeft, const glm::vec2 &bottomRight, const glm::vec4 &color,
+                              const glm::vec2 &uvMin, const glm::vec2 &uvMax);
 
     private:
         GLuint vao_, vbo_, ebo_; ///< Objetos de buffer compartidos por todo el batch.
@@ -77,6 +82,8 @@ namespace gfx
 
         static const size_t MAX_VERTICES = 10000;
         static const size_t MAX_INDICES = 15000;
+
+        GLuint currentTexture_ = 0;
 
         void addVertex(const Vertex2D &vertex);
         void addQuad(const glm::vec2 &pos, const glm::vec2 &size, const glm::vec4 &color);

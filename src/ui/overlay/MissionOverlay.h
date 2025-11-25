@@ -16,6 +16,7 @@
 
 #include "../../gfx/rendering/Renderer2D.h"
 #include "../../gfx/rendering/TextRenderer.h"
+#include "../../gfx/rendering/TrueTypeFont.h"
 
 // Forward declarations para evitar includes
 struct GLFWwindow;
@@ -143,6 +144,13 @@ namespace ui
         void drawBox(float x, float y, float w, float h);
         std::string formatMetrics(const mission::MissionRuntime &runtime);
         std::vector<std::string> splitLines(const std::string &text) const;
+        glm::vec2 overlayTextSize(const std::string &text, float size, float lineSpacing = 1.0f) const;
+        void drawOverlayText(const std::string &text, const glm::vec2 &anchorPoint, float size,
+                             const glm::vec4 &color, const glm::vec2 &anchor = glm::vec2(0.5f),
+                             float lineSpacing = 1.0f);
+
+        gfx::TrueTypeFont overlayFont_;
+        bool overlayFontReady_ = false;
     };
 
 } // namespace ui
