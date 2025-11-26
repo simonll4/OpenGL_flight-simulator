@@ -9,6 +9,7 @@
 #include "../../mission/MissionRegistry.h"
 #include "../../gfx/rendering/Renderer2D.h"
 #include "../../gfx/rendering/TextRenderer.h"
+#include "../../gfx/rendering/TrueTypeFont.h"
 #include <memory>
 
 extern "C"
@@ -108,6 +109,13 @@ namespace ui
         void renderMissionList();
         void renderMissionDetails();
         void renderInstructions();
+        void drawMenuText(const std::string &text, const glm::vec2 &anchorPoint, float size,
+                          const glm::vec4 &color, const glm::vec2 &anchor = glm::vec2(0.5f),
+                          float lineSpacing = 1.0f);
+        glm::vec2 menuTextSize(const std::string &text, float size, float lineSpacing = 1.0f) const;
+
+        gfx::TrueTypeFont menuFont_;
+        bool menuFontReady_ = false;
     };
 
 } // namespace ui

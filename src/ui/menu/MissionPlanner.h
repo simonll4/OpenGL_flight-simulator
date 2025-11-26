@@ -26,6 +26,7 @@
 #include "../../mission/MissionDefinition.h"
 #include "../../gfx/rendering/Renderer2D.h"
 #include "../../gfx/rendering/TextRenderer.h"
+#include "../../gfx/rendering/TrueTypeFont.h"
 
 // Reenvío de la estructura GLFWwindow para no incluir GLFW en el header
 struct GLFWwindow;
@@ -160,6 +161,10 @@ namespace ui
         void renderStoryboard();
         void renderInstructions();
         void renderStartButton();
+        void drawPlannerText(const std::string &text, const glm::vec2 &anchorPoint, float size,
+                             const glm::vec4 &color, const glm::vec2 &anchor = glm::vec2(0.5f),
+                             float lineSpacing = 1.0f);
+        glm::vec2 plannerTextSize(const std::string &text, float size, float lineSpacing = 1.0f) const;
 
         glm::vec2 mapWorldToScreen(const glm::vec3 &world) const;
         glm::vec3 mapScreenToWorld(const glm::vec2 &screen) const;
@@ -215,6 +220,9 @@ namespace ui
         float cachedMissionLength_ = 0.0f;
         float storyboardCardHeight_ = 90.0f;
         float panSpeed_ = 200.0f; ///< Velocidad de paneo del mapa en metros/segundo
+
+        gfx::TrueTypeFont plannerFont_;
+        bool plannerFontReady_ = false;
     };
 
 } // namespace ui

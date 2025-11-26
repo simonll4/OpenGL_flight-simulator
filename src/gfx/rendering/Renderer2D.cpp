@@ -12,7 +12,7 @@ namespace gfx
     //  Ciclo de vida
     ////////////////////////////////////////////////////////////////////////////
 
-    Renderer2D::Renderer2D() : vao_(0), vbo_(0), ebo_(0), screenWidth_(800), screenHeight_(600)
+    Renderer2D::Renderer2D() : vao_(0), vbo_(0), ebo_(0), screenWidth_(800), screenHeight_(600), currentTexture_(0)
     {
         vertices_.reserve(MAX_VERTICES);
         indices_.reserve(MAX_INDICES);
@@ -92,6 +92,7 @@ namespace gfx
     {
         vertices_.clear();
         indices_.clear();
+        currentTexture_ = 0;
     }
 
     void Renderer2D::end()
@@ -114,6 +115,10 @@ namespace gfx
         // Renderizar
         shader_.use();
         shader_.setMat4("uProjection", projection_);
+        shader_.setBool("uUseTexture", currentTexture_ != 0);
+        shader_.setInt("uTexture", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, currentTexture_);
 
         glBindVertexArray(vao_);
         glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
@@ -124,6 +129,17 @@ namespace gfx
         // Limpiar después de renderizar para evitar mezcla de batches consecutivos.
         vertices_.clear();
         indices_.clear();
+    }
+
+    void Renderer2D::setTexture(GLuint textureId)
+    {
+        if (currentTexture_ == textureId)
+        {
+            return;
+        }
+        // Finalizar el batch actual antes de cambiar de textura
+        flush();
+        currentTexture_ = textureId;
     }
 
     void Renderer2D::ensureCapacity(size_t vertexCount, size_t indexCount)
@@ -326,6 +342,26 @@ namespace gfx
             // Dibujar borde como polilínea cerrada
             drawPolyline({p1, p2, p3}, color, 1.0f, true);
         }
+    }
+
+    void Renderer2D::drawTexturedQuad(const glm::vec2 &topLeft, const glm::vec2 &bottomRight, const glm::vec4 &color,
+                                      const glm::vec2 &uvMin, const glm::vec2 &uvMax)
+    {
+        ensureCapacity(4, 6);
+        GLuint baseIndex = vertices_.size();
+
+        addVertex({{topLeft.x, topLeft.y}, color, {uvMin.x, uvMin.y}});
+        addVertex({{bottomRight.x, topLeft.y}, color, {uvMax.x, uvMin.y}});
+        addVertex({{bottomRight.x, bottomRight.y}, color, {uvMax.x, uvMax.y}});
+        addVertex({{topLeft.x, bottomRight.y}, color, {uvMin.x, uvMax.y}});
+
+        indices_.push_back(baseIndex);
+        indices_.push_back(baseIndex + 1);
+        indices_.push_back(baseIndex + 2);
+
+        indices_.push_back(baseIndex);
+        indices_.push_back(baseIndex + 2);
+        indices_.push_back(baseIndex + 3);
     }
 
 } // namespace gfx
