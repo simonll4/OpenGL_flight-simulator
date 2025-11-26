@@ -3,7 +3,7 @@
 Este directorio resume los aspectos esenciales del simulador para que nuevas personas en el equipo puedan orientarse rápido sin leer reportes de limpieza ni bitácoras antiguas.
 
 ## 1. Propósito del Proyecto
-- **Tipo**: simulador de vuelo en C++/OpenGL 3.3 enfocado en el HUD del F‑16.
+- **Tipo**: simulador de vuelo en C++/OpenGL 3.3 enfocado en el HUD del F-16.
 - **Objetivo**: validar instrumentación, navegación y flujo de misiones sobre un entorno 3D ligero.
 - **Componentes principales**:
   - `src/core` – ciclo de vida de la aplicación y administración de estados.
@@ -66,5 +66,7 @@ FlightState (simulación + HUD + overlay)
 - [architecture.md](architecture.md) – Profundiza en cómo se comunican los módulos (Application, estados, sistemas y render).
 - [hud.md](hud.md) – Describe cada instrumento y su mapping con `FlightData`.
 - [missions.md](missions.md) – Explica el flujo completo de misiones, planner, runtime y overlay.
+- [shaders.md](shaders.md) – Detalle técnico de los programas GLSL utilizados.
+- [assets.md](assets.md) – Estructura y gestión de recursos (modelos, texturas, fuentes).
 
 > Esta documentación evita changelogs o auditorías antiguas; sólo cubre información vigente para desarrollar, depurar o extender el simulador.

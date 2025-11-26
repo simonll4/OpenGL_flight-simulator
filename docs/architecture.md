@@ -4,7 +4,7 @@ Este documento resume cómo se organiza el código y qué responsabilidades tien
 
 ## 1. Núcleo (`src/core`)
 - **`core::Application`**
-  - Inicializa GLFW/GLAD, ventana y recursos opengl (clipmap, skybox, shaders, modelo).
+  - Inicializa GLFW/GLAD, ventana y recursos OpenGL (clipmap, skybox, shaders, modelo).
   - Mantiene un `core::AppContext` con punteros a todos los subsistemas.
   - Gestiona un mapa de estados (`states::IModeState`) y delega `handleInput/update/render`.
   - Controla el ciclo principal (timing, resize, swap buffers, transición de estados y shutdown).
@@ -33,7 +33,10 @@ Este documento resume cómo se organiza el código y qué responsabilidades tien
 - **Terreno**: `ClipmapTerrain` extrae heightmaps/texturas y dibuja niveles escalados con primitive restart.
 - **Skybox**: `SkyboxRenderer + TextureCube`.
 - **Modelo**: `gfx::Shader + gfx::Model` para el F-16 (Assimp + PBR básico).
-- **HUD/2D**: `gfx::Renderer2D` + `gfx::TextRenderer` usados por HUD, menús y overlay.
+- **Texto**:
+  - **`gfx::TextRenderer`**: Renderizado estilo display de 7 segmentos (usado en HUD).
+  - **`gfx::TrueTypeFont`**: Renderizado de fuentes vectoriales de alta calidad usando `stb_truetype` (usado en Mission Planner y UI moderna).
+- **Shaders**: Gestión de programas GLSL (ver `docs/shaders.md`).
 
 ## 5. Interfaz de Usuario (`src/ui`)
 - **UIManager**
@@ -43,8 +46,9 @@ Este documento resume cómo se organiza el código y qué responsabilidades tien
   - Lista misiones con `Renderer2D`.
   - Devuelve `MenuResult` con `missionSelected` / `exitRequested`.
 - **MissionPlanner**
-  - Editor visual (mapa XZ + storyboard + perfil de altitud).
-  - Permite mover waypoints, generar patrones y exportar/importar JSON simplificado.
+  - Editor visual completo (mapa XZ + storyboard + perfil de altitud).
+  - Utiliza `TrueTypeFont` para textos legibles.
+  - Permite mover waypoints, generar patrones automáticos y visualizar métricas de misión.
 - **MissionOverlay**
   - Panel modal durante briefing/completion (ver `docs/missions.md`).
 

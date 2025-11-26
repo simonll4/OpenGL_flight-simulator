@@ -1,6 +1,6 @@
 # HUD e Instrumentación
 
-El HUD se implementa en `src/hud` y utiliza `gfx::Renderer2D` para dibujar un overlay monocromático inspirado en el F‑16. Todos los instrumentos consumen `flight::FlightData`, lo que facilita pruebas y mocking.
+El HUD se implementa en `src/hud` y utiliza `gfx::Renderer2D` para dibujar un overlay monocromático inspirado en el F-16. Todos los instrumentos consumen `flight::FlightData`, lo que facilita pruebas y mocking.
 
 ## 1. Flujo General
 1. `UIManager` inicializa `hud::FlightHUD` y le pasa el ancho/alto de pantalla.
@@ -23,6 +23,7 @@ El HUD se implementa en `src/hud` y utiliza `gfx::Renderer2D` para dibujar un ov
 
 ## 3. Convenciones de Diseño
 - **Color**: `glm::vec4(0.0f, 1.0f, 0.4f, 0.95f)` para mantener el aspecto HUD clásico.
+- **Texto**: Se utiliza `gfx::TextRenderer` (estilo 7 segmentos) para maximizar la legibilidad y la estética retro-militar.
 - **Unidades**:
   - `airspeed`: nudos.
   - `altitude`: pies con offset de nivel de ojos (FlightData lo normaliza).
