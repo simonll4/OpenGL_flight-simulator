@@ -18,10 +18,24 @@ namespace systems
     void CameraRig::reset(const glm::vec3 &planePos, const glm::quat &planeOrientation)
     {
         cameraDistance_ = 20.0f;
-        firstPersonView_ = false;
-        smoothCamera_ = true;
+        currentMode_ = CameraMode::ThirdPerson;
         cameraFront_ = glm::vec3(0.0f, 0.0f, -1.0f);
         cameraUp_ = glm::vec3(0.0f, 1.0f, 0.0f);
+
+        // Regenerate cinematic points relative to the starting position
+        cinematicPoints_.clear();
+        
+        // Runway/Takeoff views - Closer now
+        cinematicPoints_.push_back(planePos + glm::vec3(150.0f, 30.0f, 150.0f));
+        cinematicPoints_.push_back(planePos + glm::vec3(-150.0f, 20.0f, -150.0f));
+        
+        // Mid-distance views - Also closer
+        cinematicPoints_.push_back(planePos + glm::vec3(300.0f, 50.0f, 300.0f));
+        cinematicPoints_.push_back(planePos + glm::vec3(-300.0f, 80.0f, 100.0f));
+        cinematicPoints_.push_back(planePos + glm::vec3(100.0f, 40.0f, -300.0f));
+
+        currentCinematicIndex_ = 0;
+
         update(0.0f, planePos, planeOrientation, 0.0f);
     }
 
@@ -34,28 +48,27 @@ namespace systems
 
         if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
         {
-            if (!toggleFirstPersonPressed_)
+            if (!toggleViewPressed_)
             {
-                firstPersonView_ = !firstPersonView_;
-                toggleFirstPersonPressed_ = true;
+                // Cycle modes: Third -> First -> Cinematic -> Third
+                if (currentMode_ == CameraMode::ThirdPerson)
+                {
+                    currentMode_ = CameraMode::FirstPerson;
+                }
+                else if (currentMode_ == CameraMode::FirstPerson)
+                {
+                    currentMode_ = CameraMode::Cinematic;
+                }
+                else
+                {
+                    currentMode_ = CameraMode::ThirdPerson;
+                }
+                toggleViewPressed_ = true;
             }
         }
         else
         {
-            toggleFirstPersonPressed_ = false;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-        {
-            if (!toggleSmoothPressed_)
-            {
-                smoothCamera_ = !smoothCamera_;
-                toggleSmoothPressed_ = true;
-            }
-        }
-        else
-        {
-            toggleSmoothPressed_ = false;
+            toggleViewPressed_ = false;
         }
 
         const float kZoomSpeed = 10.0f;
@@ -74,13 +87,17 @@ namespace systems
         glm::vec3 forward = planeOrientation * glm::vec3(0, 0, -1);
         glm::vec3 up = planeOrientation * glm::vec3(0, 1, 0);
 
-        if (firstPersonView_)
+        switch (currentMode_)
         {
-            updateFirstPerson(dt, planePos, forward, up);
-        }
-        else
-        {
-            updateThirdPerson(dt, planePos, forward, up, planeSpeed);
+        case CameraMode::FirstPerson:
+            updateFirstPerson(planePos, forward, up);
+            break;
+        case CameraMode::ThirdPerson:
+            updateThirdPerson(planePos, forward, up);
+            break;
+        case CameraMode::Cinematic:
+            updateCinematic(planePos);
+            break;
         }
 
         viewMatrix_ = glm::lookAt(cameraPos_, cameraPos_ + cameraFront_, cameraUp_);
@@ -96,42 +113,92 @@ namespace systems
         return glm::perspective(glm::radians(45.0f), aspect, 0.1f, dynamicFarPlane_);
     }
 
-    void CameraRig::updateFirstPerson(float dt, const glm::vec3 &planePos, const glm::vec3 &forward, const glm::vec3 &up)
+    void CameraRig::updateFirstPerson(const glm::vec3 &planePos, const glm::vec3 &forward, const glm::vec3 &up)
     {
-        glm::vec3 targetPos = planePos + forward * 6.0f + up * 1.8f;
-        if (smoothCamera_)
-        {
-            float lerpFactor = glm::clamp(dt * cameraLerpSpeed_ * 2.0f, 0.0f, 1.0f);
-            cameraPos_ = glm::mix(cameraPos_, targetPos, lerpFactor);
-        }
-        else
-        {
-            cameraPos_ = targetPos;
-        }
+        // Rigid cockpit view
+        cameraPos_ = planePos + forward * 6.0f + up * 1.8f;
         cameraFront_ = forward;
         cameraUp_ = up;
     }
 
-    void CameraRig::updateThirdPerson(float dt, const glm::vec3 &planePos, const glm::vec3 &forward, const glm::vec3 &up, float planeSpeed)
+    void CameraRig::updateThirdPerson(const glm::vec3 &planePos, const glm::vec3 &forward, const glm::vec3 &up)
     {
+        // Rigid third person view
         glm::vec3 targetPos = planePos - forward * cameraDistance_ + up * (cameraDistance_ * 0.4f);
         glm::vec3 lookTarget = planePos + forward * 5.0f;
-        glm::vec3 targetFront = glm::normalize(lookTarget - targetPos);
-
-        if (smoothCamera_)
-        {
-            float speedFactor = glm::clamp(planeSpeed / 100.0f, 0.5f, 1.5f);
-            float lerpFactor = glm::clamp(dt * cameraLerpSpeed_ * speedFactor * 0.8f, 0.0f, 0.5f);
-            cameraPos_ = glm::mix(cameraPos_, targetPos, lerpFactor);
-            cameraFront_ = glm::normalize(glm::mix(cameraFront_, targetFront, glm::clamp(lerpFactor * 1.5f, 0.0f, 1.0f)));
-        }
-        else
-        {
-            cameraPos_ = targetPos;
-            cameraFront_ = targetFront;
-        }
-
+        
+        cameraPos_ = targetPos;
+        cameraFront_ = glm::normalize(lookTarget - targetPos);
         cameraUp_ = up;
+    }
+
+    void CameraRig::updateCinematic(const glm::vec3 &planePos)
+    {
+        // Dynamic Cinematic Logic:
+        // 1. If we have no points, or the plane is too far from ALL points, generate a new one near the plane.
+        // 2. Switch to the best existing point if available.
+
+        float kMaxDistance = 300.0f; // If plane is further than this, we need a new camera.
+        float kSpawnDistance = 150.0f; // Distance to spawn new camera from plane.
+
+        // Check distance to current camera
+        float currentDist = 100000.0f;
+        if (!cinematicPoints_.empty()) {
+            currentDist = glm::distance(planePos, cinematicPoints_[currentCinematicIndex_]);
+        }
+
+        // If we are too far, or have no points, try to find a better existing point
+        int bestIndex = -1;
+        float bestDist = 100000.0f;
+
+        for (size_t i = 0; i < cinematicPoints_.size(); ++i)
+        {
+            float d = glm::distance(planePos, cinematicPoints_[i]);
+            if (d < bestDist)
+            {
+                bestDist = d;
+                bestIndex = static_cast<int>(i);
+            }
+        }
+
+        // If even the best point is too far, generate a new one!
+        if (bestDist > kMaxDistance || cinematicPoints_.empty())
+        {
+            // Refined approach:
+            // Spawn a point 300m away in a somewhat random direction
+            float theta = static_cast<float>(rand() % 360);
+            float phi = static_cast<float>(rand() % 45 + 10); // 10 to 55 degrees up
+            
+            float x = kSpawnDistance * std::cos(glm::radians(phi)) * std::cos(glm::radians(theta));
+            float y = kSpawnDistance * std::sin(glm::radians(phi));
+            float z = kSpawnDistance * std::cos(glm::radians(phi)) * std::sin(glm::radians(theta));
+
+            glm::vec3 spawnPos = planePos + glm::vec3(x, y, z);
+            
+            cinematicPoints_.push_back(spawnPos);
+            bestIndex = cinematicPoints_.size() - 1;
+            bestDist = glm::distance(planePos, spawnPos);
+        }
+
+        // Hysteresis for switching
+        if (bestIndex != -1 && bestIndex != currentCinematicIndex_)
+        {
+             float distToBest = glm::distance(planePos, cinematicPoints_[bestIndex]);
+             
+             // Switch if the new point is significantly closer (e.g. 70% of current distance)
+             // OR if the current distance is getting too large (> 600m)
+             if (distToBest < currentDist * 0.7f || currentDist > kMaxDistance * 0.8f)
+             {
+                 currentCinematicIndex_ = bestIndex;
+             }
+        }
+        
+        // Safety check
+        if (currentCinematicIndex_ >= 0 && currentCinematicIndex_ < static_cast<int>(cinematicPoints_.size())) {
+            cameraPos_ = cinematicPoints_[currentCinematicIndex_];
+            cameraFront_ = glm::normalize(planePos - cameraPos_);
+            cameraUp_ = glm::vec3(0.0f, 1.0f, 0.0f);
+        }
     }
 
 } // namespace systems

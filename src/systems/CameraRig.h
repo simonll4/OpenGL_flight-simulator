@@ -3,19 +3,26 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <vector>
 
 struct GLFWwindow;
 
 namespace systems
 {
 
+    enum class CameraMode
+    {
+        FirstPerson,
+        ThirdPerson,
+        Cinematic
+    };
+
     /**
      * @class CameraRig
-     * @brief Controla las cámaras en primera y tercera persona alrededor del avión.
+     * @brief Controla las cámaras en primera, tercera persona y cinematográfica.
      *
-     * Lee input del usuario para alternar vista, aplicar zoom y activar suavizado.
-     * Calcula matrices de vista/proyección dinámicas que se alimentan al renderer
-     * teniendo en cuenta posición/orientación de la aeronave y velocidad actual.
+     * Lee input del usuario para alternar vista y aplicar zoom.
+     * Calcula matrices de vista/proyección dinámicas.
      */
     class CameraRig
     {
@@ -25,7 +32,7 @@ namespace systems
          */
         void initialize(const glm::vec3 &planePos, const glm::quat &planeOrientation);
         /**
-         * @brief Procesa eventos de teclado (cambio de vista, suavizado, zoom).
+         * @brief Procesa eventos de teclado (cambio de vista, zoom).
          */
         void handleInput(GLFWwindow *window, float dt);
         /**
@@ -42,32 +49,35 @@ namespace systems
         const glm::vec3 &up() const { return cameraUp_; }
 
         float dynamicFarPlane() const { return dynamicFarPlane_; }
-        bool isFirstPerson() const { return firstPersonView_; }
-        bool isSmoothCamera() const { return smoothCamera_; }
+        bool isFirstPerson() const { return currentMode_ == CameraMode::FirstPerson; }
 
         /// Reinicia desplazamientos/toggles tras cargar una misión nueva.
         void reset(const glm::vec3 &planePos, const glm::quat &planeOrientation);
 
     private:
-        /// Interpola hacia el cockpit respetando el modo de suavizado.
-        void updateFirstPerson(float dt, const glm::vec3 &planePos, const glm::vec3 &forward, const glm::vec3 &up);
-        /// Posiciona la cámara detrás del avión con offset dependiente de velocidad.
-        void updateThirdPerson(float dt, const glm::vec3 &planePos, const glm::vec3 &forward, const glm::vec3 &up, float planeSpeed);
+        /// Vista de cockpit (rígida).
+        void updateFirstPerson(const glm::vec3 &planePos, const glm::vec3 &forward, const glm::vec3 &up);
+        /// Vista trasera (rígida).
+        void updateThirdPerson(const glm::vec3 &planePos, const glm::vec3 &forward, const glm::vec3 &up);
+        /// Vista cinematográfica (fija en puntos del mundo, siguiendo al avión).
+        void updateCinematic(const glm::vec3 &planePos);
 
         glm::vec3 cameraPos_ = glm::vec3(0.0f);
         glm::vec3 cameraFront_ = glm::vec3(0.0f, 0.0f, -1.0f);
         glm::vec3 cameraUp_ = glm::vec3(0.0f, 1.0f, 0.0f);
 
         float cameraDistance_ = 20.0f;
-        float cameraLerpSpeed_ = 5.0f;
-        bool firstPersonView_ = false;
-        bool smoothCamera_ = true;
+        
+        CameraMode currentMode_ = CameraMode::ThirdPerson;
 
         glm::mat4 viewMatrix_ = glm::mat4(1.0f);
         float dynamicFarPlane_ = 5000.0f;
 
-        bool toggleFirstPersonPressed_ = false;
-        bool toggleSmoothPressed_ = false;
+        bool toggleViewPressed_ = false;
+
+        // Cinematic mode state
+        std::vector<glm::vec3> cinematicPoints_;
+        int currentCinematicIndex_ = 0;
     };
 
 } // namespace systems
