@@ -36,7 +36,7 @@ Modelos 3D cargados mediante Assimp.
 
 ### 4. Texturas (`textures/`)
 Recursos gráficos para materiales y entorno.
-- **Terreno**: Heightmaps, normalmaps y texturas de color (albedo).
+- **Terreno**: Texturas de color (albedo) usadas en el plano texturizado (`assets/textures/terrain/texture.png`).
 - **Skybox**: 6 imágenes para el mapa de cubo (formato usualmente `right`, `left`, `top`, `bottom`, `front`, `back`).
 - **UI**: Iconos o elementos gráficos 2D si los hubiera.
 

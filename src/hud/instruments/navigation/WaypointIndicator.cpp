@@ -1,15 +1,15 @@
 /**
  * @file WaypointIndicator.cpp
- * @brief Implementación del indicador de navegación por waypoints
+ * @brief Implementation of the waypoint navigation indicator.
  *
- * Este archivo contiene la implementación completa de un indicador de navegación
- * inspirado en el HSI de Garmin. Proporciona una interfaz visual intuitiva para
- * la navegación por waypoints con una brújula fija y un indicador vertical.
+ * This file contains the complete implementation of a navigation indicator
+ * inspired by the Garmin HSI. It provides an intuitive visual interface for
+ * waypoint navigation with a fixed compass and a vertical indicator.
  *
- * Características principales:
- * - Rosa de los vientos con marcas cada 5° y etiquetas cada 30°
- * - Flecha magenta indicando dirección al waypoint
- * - Indicador vertical de diferencia de altura
+ * Key features:
+ * - Compass rose with marks every 5 degrees and labels every 30 degrees.
+ * - Magenta arrow indicating direction to the waypoint.
+ * - Vertical altitude difference indicator.
  *
  * @author Flight Simulator Team
  * @date 2024
@@ -27,15 +27,15 @@ namespace hud
     namespace
     {
         // ====================================================================
-        // CONSTANTES DE CONFIGURACIÓN DEL INDICADOR
+        // INDICATOR CONFIGURATION CONSTANTS
         // ====================================================================
 
-        constexpr float kRoseRadius = 55.0f;              ///< Radio de la rosa de los vientos
-        constexpr float kMajorTickLength = 10.0f;         ///< Longitud de marcas principales (cada 10°)
-        constexpr float kMinorTickLength = 5.0f;          ///< Longitud de marcas menores (cada 5°)
-        constexpr float kVerticalIndicatorOffset = 25.0f; ///< Separación del indicador vertical
-        constexpr float kVerticalIndicatorHeight = 60.0f; ///< Altura del indicador vertical
-        constexpr float kMaxAltitudeDiff = 500.0f;        ///< Máxima diferencia de altura mostrada
+        constexpr float kRoseRadius = 55.0f;              ///< Compass rose radius
+        constexpr float kMajorTickLength = 10.0f;         ///< Major tick length (every 10 degrees)
+        constexpr float kMinorTickLength = 5.0f;          ///< Minor tick length (every 5 degrees)
+        constexpr float kVerticalIndicatorOffset = 25.0f; ///< Vertical indicator separation
+        constexpr float kVerticalIndicatorHeight = 60.0f; ///< Vertical indicator height
+        constexpr float kMaxAltitudeDiff = 500.0f;        ///< Maximum displayed altitude difference
         constexpr float kPanelMarginLeft = 12.0f;
         constexpr float kPanelMarginRight = 12.0f;
         constexpr float kPanelMarginTop = 12.0f;
@@ -131,7 +131,7 @@ namespace hud
     } // namespace
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Ciclo de vida
+    //  Lifecycle
     ////////////////////////////////////////////////////////////////////////////
 
     WaypointIndicator::WaypointIndicator()
@@ -142,7 +142,7 @@ namespace hud
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Render principal
+    //  Main Render
     ////////////////////////////////////////////////////////////////////////////
 
     void WaypointIndicator::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
@@ -152,7 +152,6 @@ namespace hud
 
         if (!flightData.hasActiveWaypoint)
         {
-            drawNoWaypointMessage(renderer);
             return;
         }
 
@@ -162,7 +161,7 @@ namespace hud
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Preparación de datos
+    //  Data Preparation
     ////////////////////////////////////////////////////////////////////////////
 
     WaypointIndicator::NavSnapshot WaypointIndicator::buildNavSnapshot(const flight::FlightData &flightData) const
@@ -175,7 +174,7 @@ namespace hud
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Rosa de los vientos + flecha magenta
+    //  Compass Rose + Magenta Arrow
     ////////////////////////////////////////////////////////////////////////////
 
     void WaypointIndicator::drawCompassRose(gfx::Renderer2D &renderer, const NavSnapshot &nav)
@@ -190,22 +189,7 @@ namespace hud
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Mensaje cuando no hay waypoint activo
-    ////////////////////////////////////////////////////////////////////////////
-
-    void WaypointIndicator::drawNoWaypointMessage(gfx::Renderer2D &renderer)
-    {
-        glm::vec4 bgColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.6f);
-        renderer.drawRect(position_, size_, bgColor, true);
-        renderer.drawRect(position_, size_, glm::vec4(color_.r, color_.g, color_.b, 0.5f), false);
-        glm::vec2 center = position_ + size_ * 0.5f;
-        glm::vec2 textPos = center - glm::vec2(60.0f, 0.0f);
-        gfx::TextRenderer::drawString(renderer, "NO WAYPOINT", textPos, glm::vec2(10.0f, 14.0f), glm::vec4(color_.r, color_.g, color_.b, 0.7f), 13.0f);
-        renderer.drawCircle(center - glm::vec2(0.0f, 40.0f), 30.0f, glm::vec4(color_.r, color_.g, color_.b, 0.2f), 32, false);
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    //  Indicador vertical de altitud relativa
+    //  Vertical Relative Altitude Indicator
     ////////////////////////////////////////////////////////////////////////////
 
     void WaypointIndicator::drawVerticalIndicator(gfx::Renderer2D &renderer, const NavSnapshot &nav)

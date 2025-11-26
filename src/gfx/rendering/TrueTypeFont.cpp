@@ -15,7 +15,7 @@ namespace gfx
     namespace
     {
         constexpr int FIRST_CHAR = 32;
-        constexpr int NUM_CHARS = 224; // U+0020..U+00FF para cubrir acentos comunes
+        constexpr int NUM_CHARS = 224; // U+0020..U+00FF to cover common accents
     }
 
     TrueTypeFont::TrueTypeFont()
@@ -38,21 +38,21 @@ namespace gfx
         std::ifstream file(path, std::ios::binary);
         if (!file)
         {
-            std::cerr << "[TrueTypeFont] No se pudo abrir la fuente: " << path << std::endl;
+            std::cerr << "[TrueTypeFont] Could not open font: " << path << std::endl;
             return false;
         }
 
         fontBuffer_ = std::vector<unsigned char>(std::istreambuf_iterator<char>(file), {});
         if (fontBuffer_.empty())
         {
-            std::cerr << "[TrueTypeFont] Fuente vacía o inválida: " << path << std::endl;
+            std::cerr << "[TrueTypeFont] Empty or invalid font: " << path << std::endl;
             return false;
         }
 
         fontInfo_ = std::make_unique<stbtt_fontinfo>();
         if (!stbtt_InitFont(fontInfo_.get(), fontBuffer_.data(), stbtt_GetFontOffsetForIndex(fontBuffer_.data(), 0)))
         {
-            std::cerr << "[TrueTypeFont] stbtt_InitFont falló para: " << path << std::endl;
+            std::cerr << "[TrueTypeFont] stbtt_InitFont failed for: " << path << std::endl;
             return false;
         }
 
@@ -64,15 +64,15 @@ namespace gfx
         stbtt_pack_context ctx;
         if (!stbtt_PackBegin(&ctx, atlas.data(), atlasWidth_, atlasHeight_, 0, 1, nullptr))
         {
-            std::cerr << "[TrueTypeFont] stbtt_PackBegin falló" << std::endl;
+            std::cerr << "[TrueTypeFont] stbtt_PackBegin failed" << std::endl;
             return false;
         }
-        // Aumentar oversampling para mejor calidad de texto
+        // Increase oversampling for better text quality
         stbtt_PackSetOversampling(&ctx, 3, 3);
         if (!stbtt_PackFontRange(&ctx, fontBuffer_.data(), 0, atlasPixelHeight_, firstChar_, glyphCount_, packedChars.data()))
         {
             stbtt_PackEnd(&ctx);
-            std::cerr << "[TrueTypeFont] stbtt_PackFontRange falló" << std::endl;
+            std::cerr << "[TrueTypeFont] stbtt_PackFontRange failed" << std::endl;
             return false;
         }
         stbtt_PackEnd(&ctx);
@@ -330,7 +330,7 @@ namespace gfx
             return true;
         }
 
-        // Secuencia inválida: consumir un byte y devolver símbolo de respaldo
+        // Invalid sequence: consume one byte and return fallback symbol
         ++index;
         codepoint = fallbackCodepoint();
         return true;

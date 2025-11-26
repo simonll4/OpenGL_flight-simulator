@@ -1,3 +1,8 @@
+/**
+ * @file FlightSimulationController.h
+ * @brief Flight dynamics controller integrating FDM solver.
+ */
+
 #pragma once
 
 #include <glm/glm.hpp>

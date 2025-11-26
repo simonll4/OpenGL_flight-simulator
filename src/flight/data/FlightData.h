@@ -1,3 +1,8 @@
+/**
+ * @file FlightData.h
+ * @brief Flight data structure with aeronautical units and conventions.
+ */
+
 // flight/data/FlightData.h
 #pragma once
 #include <glm/glm.hpp>
@@ -61,49 +66,59 @@ namespace flight
      */
     struct FlightData
     {
-        // Actitud
-        float pitch = 0.0f;
-        float roll = 0.0f;
-        float yaw = 0.0f;
+        // --- Actitud (Attitude) ---
+        float pitch = 0.0f; ///< Pitch angle in degrees [-90, 90]. Positive is nose up.
+        float roll = 0.0f;  ///< Roll angle in degrees [-180, 180]. Positive is right wing down.
+        float yaw = 0.0f;   ///< Yaw angle in degrees [0, 360).
 
-        // Navegación
-        float heading = 0.0f;       // 0..360
-        float airspeed = 0.0f;      // kt
-        float altitude = 1000.0f;   // ft
-        float verticalSpeed = 0.0f; // ft/min
+        // --- Navegación (Navigation) ---
+        float heading = 0.0f;       ///< Heading in degrees [0, 360). 0 is North, 90 is East.
+        float airspeed = 0.0f;      ///< Airspeed in knots (kt).
+        float altitude = 1000.0f;   ///< Altitude in feet (ft).
+        float verticalSpeed = 0.0f; ///< Vertical speed in feet per minute (ft/min).
 
-        // Estado en mundo (m / m/s)
-        glm::vec3 position = glm::vec3(0.0f, 304.8f, 0.0f);
-        glm::vec3 velocity = glm::vec3(0.0f);
+        // --- Estado en mundo (World State) ---
+        glm::vec3 position = glm::vec3(0.0f, 304.8f, 0.0f); ///< Position in world coordinates (meters).
+        glm::vec3 velocity = glm::vec3(0.0f);               ///< Velocity vector in world coordinates (m/s).
 
-        // Base de cámara ortonormal
-        glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-        glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::vec3 cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);
+        // --- Base de cámara ortonormal (Camera Basis) ---
+        glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); ///< Camera forward vector.
+        glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);     ///< Camera up vector.
+        glm::vec3 cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);  ///< Camera right vector.
 
-        // Datos aerodinámicos (NUEVO)
-        float angleOfAttack = 0.0f;     // alpha [rad]
-        float sideslip = 0.0f;          // beta [rad]
-        float dynamicPressure = 0.0f;   // qbar [Pa]
+        // --- Datos aerodinámicos (Aerodynamics) ---
+        float angleOfAttack = 0.0f;   ///< Angle of attack (alpha) in radians.
+        float sideslip = 0.0f;        ///< Sideslip angle (beta) in radians.
+        float dynamicPressure = 0.0f; ///< Dynamic pressure (qbar) in Pascals.
 
-        // Velocidades angulares body frame (NUEVO)
-        float rollRate = 0.0f;          // p [rad/s]
-        float pitchRate = 0.0f;         // q [rad/s]
-        float yawRate = 0.0f;           // r [rad/s]
+        // --- Velocidades angulares body frame (Angular Rates) ---
+        float rollRate = 0.0f;  ///< Roll rate (p) in rad/s.
+        float pitchRate = 0.0f; ///< Pitch rate (q) in rad/s.
+        float yawRate = 0.0f;   ///< Yaw rate (r) in rad/s.
 
-        // Fuerzas
-        float gForce = 1.0f;            // G-forces totales
-        float gForceNormal = 1.0f;      // G normal (vertical)
-        float gForceLateral = 0.0f;     // G lateral (horizontal)
-        float loadFactor = 1.0f;        // n = G / g
+        // --- Fuerzas (Forces) ---
+        float gForce = 1.0f;        ///< Total G-force magnitude.
+        float gForceNormal = 1.0f;  ///< Normal (vertical) G-force.
+        float gForceLateral = 0.0f; ///< Lateral G-force.
+        float loadFactor = 1.0f;    ///< Load factor (n = G / g).
 
-        // Sistema de Waypoints (navegación)
-        glm::vec3 targetWaypoint = glm::vec3(0.0f);
-        bool hasActiveWaypoint = false;
-        float waypointDistance = 0.0f;
-        float waypointBearing = 0.0f;
+        // --- Sistema de Waypoints (Navigation System) ---
+        glm::vec3 targetWaypoint = glm::vec3(0.0f); ///< Target waypoint position in world coordinates.
+        bool hasActiveWaypoint = false;             ///< True if a waypoint is currently active.
+        float waypointDistance = 0.0f;              ///< Distance to the active waypoint (meters).
+        float waypointBearing = 0.0f;               ///< Bearing to the active waypoint (degrees).
 
-        // Actualización de datos de vuelo desde cámara
+        /**
+         * @brief Updates flight data based on camera position and orientation.
+         *
+         * Calculates attitude (pitch, roll, heading) and flight parameters (airspeed, altitude, etc.)
+         * from the camera's transformation matrix and movement.
+         *
+         * @param front Camera forward vector.
+         * @param up Camera up vector.
+         * @param pos Camera position in world space.
+         * @param deltaTime Time elapsed since last update (seconds).
+         */
         void updateFromCamera(const glm::vec3 &front,
                               const glm::vec3 &up,
                               const glm::vec3 &pos,

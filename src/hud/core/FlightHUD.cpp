@@ -1,17 +1,17 @@
 /**
  * =============================================================================
- * PROPÓSITO:
- * Este archivo gestiona TODOS los instrumentos del HUD del simulador de vuelo.
+ * PURPOSE:
+ * This file manages ALL instruments of the flight simulator HUD.
  * =============================================================================
  *
- * ARQUITECTURA:
- * El FlightHUD es el coordinador central que:
- * 1. Crea y gestiona todos los instrumentos de vuelo
- * 2. Les pasa los datos actualizados del avión (FlightData)
- * 3. Coordina el renderizado en el orden correcto
- * 4. Maneja el layout y posicionamiento de cada instrumento
+ * ARCHITECTURE:
+ * The FlightHUD is the central coordinator that:
+ * 1. Creates and manages all flight instruments
+ * 2. Passes updated aircraft data (FlightData) to them
+ * 3. Coordinates rendering in the correct order
+ * 4. Handles layout and positioning of each instrument
  *
- * INSTRUMENTOS:
+ * INSTRUMENTS:
  * - Altimeter
  * - AttitudeIndicator
  * - AirspeedIndicator
@@ -20,16 +20,16 @@
  * - TurnCoordinator
  *
  * =============================================================================
- * GUÍA PARA AGREGAR UN NUEVO INSTRUMENTO:
+ * GUIDE TO ADDING A NEW INSTRUMENT:
  * =============================================================================
- * 1. Crear la clase del instrumento (ej: AttitudeIndicator.h/cpp)
- * 2. Agregar #include en FlightHUD.h
- * 3. Agregar variable miembro en FlightHUD.h privado:
+ * 1. Create the instrument class (e.g., AttitudeIndicator.h/cpp)
+ * 2. Add #include in FlightHUD.h
+ * 3. Add member variable in FlightHUD.h private:
  *    AttitudeIndicator attitudeIndicator_;
- * 4. En init(): Inicializar el instrumento (ver ejemplo del altímetro)
- * 5. En update(): Pasar datos si el instrumento los necesita
- * 6. En render(): Llamar a render() del instrumento
- * 7. En setupInstrumentLayout(): Configurar posición y tamaño
+ * 4. In init(): Initialize the instrument (see altimeter example)
+ * 5. In update(): Pass data if the instrument needs it
+ * 6. In render(): Call render() of the instrument
+ * 7. In setupInstrumentLayout(): Configure position and size
  */
 
 #include "FlightHUD.h"
@@ -46,17 +46,17 @@ namespace hud
                              waypointIndicator_(nullptr), bankAngleIndicator_(nullptr), pitchLadder_(nullptr),
                              screenWidth_(1280), screenHeight_(720)
     {
-        // Crear el renderer 2D compartido
+        // Create the shared 2D renderer
         renderer2D_ = std::make_unique<gfx::Renderer2D>();
 
-        // Esquema cromático base (se puede expandir con configuraciones de usuario).
-        hudColor_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
+        // Base color scheme (can be expanded with user configurations).
+        hudColor_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // HUD Green
         warningColor_ = glm::vec4(1.0f, 0.85f, 0.2f, 0.95f);
         dangerColor_ = glm::vec4(1.0f, 0.2f, 0.2f, 0.95f);
 
-        // CREAR E INICIALIZAR INSTRUMENTOS
-        // Los instrumentos se crean como unique_ptr y se almacenan en el vector
-        // También guardamos referencias raw para acceso directo
+        // CREATE AND INITIALIZE INSTRUMENTS
+        // Instruments are created as unique_ptr and stored in the vector
+        // We also keep raw references for direct access
 
         // Altimeter
         auto altimeter = std::make_unique<Altimeter>();
@@ -90,31 +90,31 @@ namespace hud
     }
 
     // ============================================================================
-    // INICIALIZACIÓN DE INSTRUMENTOS
+    // INSTRUMENT INITIALIZATION
     // ============================================================================
 
     /**
-     * @brief Inicializa el sistema de HUD y todos sus instrumentos
-     * @param screenWidth Ancho de la pantalla en píxeles
-     * @param screenHeight Alto de la pantalla en píxeles
+     * @brief Initializes the HUD system and all its instruments.
+     * @param screenWidth Screen width in pixels.
+     * @param screenHeight Screen height in pixels.
      *
-     * Este método inicializa:
-     * 1. El sistema de renderizado 2D compartido
-     * 2. El layout de TODOS los instrumentos
-     * 3. Cualquier configuración inicial necesaria
+     * This method initializes:
+     * 1. The shared 2D rendering system.
+     * 2. The layout of ALL instruments.
+     * 3. Any necessary initial configuration.
      */
     void FlightHUD::init(int screenWidth, int screenHeight)
     {
         screenWidth_ = screenWidth;
         screenHeight_ = screenHeight;
 
-        // Inicializar el renderer 2D compartido (proyección ortográfica HUD).
+        // Initialize shared 2D renderer (HUD orthographic projection).
         renderer2D_->init(screenWidth, screenHeight);
 
-        // Configurar layout de todos los instrumentos
+        // Configure layout of all instruments
         setupInstrumentLayout();
 
-        // Log de inicialización
+        // Initialization log
         std::cout << "Flight HUD initialized: " << screenWidth << "x" << screenHeight << std::endl;
         std::cout << "  - Altimeter: OK" << std::endl;
         std::cout << "  - SpeedIndicator: OK" << std::endl;
@@ -125,7 +125,7 @@ namespace hud
     }
 
     /**
-     * @brief Ajusta el HUD cuando cambia el tamaño de la ventana
+     * @brief Adjusts the HUD when the window size changes.
      */
     void FlightHUD::setScreenSize(int width, int height)
     {
@@ -133,20 +133,20 @@ namespace hud
         screenHeight_ = height;
         renderer2D_->setScreenSize(width, height);
 
-        // Recalcular layout de todos los instrumentos
+        // Recalculate layout of all instruments
         setupInstrumentLayout();
     }
 
     // ============================================================================
-    // ACTUALIZACIÓN Y RENDERIZADO DE INSTRUMENTOS
+    // INSTRUMENT UPDATE AND RENDERING
     // ============================================================================
 
     /**
-     * @brief Actualiza los datos de vuelo para todos los instrumentos
-     * @param flightData Datos actuales del vuelo (altitud, velocidad, actitud, etc.)
+     * @brief Updates flight data for all instruments.
+     * @param flightData Current flight data (altitude, speed, attitude, etc.).
      *
-     * Este método copia los datos de vuelo que luego serán pasados a cada
-     * instrumento durante el render.
+     * This method copies the flight data that will later be passed to each
+     * instrument during render.
      */
     void FlightHUD::update(const flight::FlightData &flightData)
     {
@@ -154,28 +154,28 @@ namespace hud
     }
 
     /**
-     * @brief Renderiza todos los instrumentos del HUD como overlay 2D
+     * @brief Renders all HUD instruments as a 2D overlay.
      *
-     * Utiliza el patrón polimórfico para renderizar todos los instrumentos
-     * de forma uniforme mediante el vector de Instrument*.
+     * Uses the polymorphic pattern to render all instruments uniformly
+     * via the Instrument* vector.
      *
-     * Proceso:
-     * 1. Configurar estado OpenGL (blending, depth test)
-     * 2. Renderizar cada instrumento habilitado en orden
-     * 3. Restaurar estado OpenGL
+     * Process:
+     * 1. Configure OpenGL state (blending, depth test).
+     * 2. Render each enabled instrument in order.
+     * 3. Restore OpenGL state.
      */
     void FlightHUD::render()
     {
-        // Configurar estado OpenGL para overlay 2D
+        // Configure OpenGL state for 2D overlay
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_DEPTH_TEST); // HUD siempre visible encima del 3D
+        glDisable(GL_DEPTH_TEST); // HUD always visible on top of 3D
 
-        // Comenzar batch de renderizado 2D
+        // Begin 2D rendering batch
         renderer2D_->begin();
 
         // ========================================================================
-        // RENDERIZAR TODOS LOS INSTRUMENTOS POLIMÓRFICAMENTE
+        // RENDER ALL INSTRUMENTS POLYMORPHICALLY
         // ========================================================================
 
         for (const auto &instrument : instruments_)
@@ -186,43 +186,43 @@ namespace hud
             }
         }
 
-        // Finalizar batch
+        // End batch
         renderer2D_->end();
 
-        // Restaurar estado OpenGL para renderizado 3D
+        // Restore OpenGL state for 3D rendering
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
     }
 
     // ============================================================================
-    // CONFIGURACIÓN DE LAYOUTS
+    // LAYOUT CONFIGURATION
     // ============================================================================
 
     /**
-     * @brief Cambia el layout del HUD
-     * @param layoutName Nombre del layout ("classic", "modern", "minimal")
+     * @brief Changes the HUD layout.
+     * @param layoutName Layout name ("classic", "modern", "minimal").
      *
-     * Layouts disponibles:
-     * - "classic": Layout tradicional de aviación (instrumentos grandes)
-     * - "modern": Layout compacto y eficiente
-     * - "minimal": Solo información esencial
+     * Available layouts:
+     * - "classic": Traditional aviation layout (large instruments).
+     * - "modern": Compact and efficient layout.
+     * - "minimal": Only essential information.
      */
     void FlightHUD::setLayout(const std::string &layoutName)
     {
-        // Reconfigurar todos los instrumentos según el layout seleccionado
+        // Reconfigure all instruments according to the selected layout
         setupInstrumentLayout();
     }
 
     /**
-     * @brief Configura la posición y tamaño de TODOS los instrumentos
+     * @brief Configures the position and size of ALL instruments.
      */
     void FlightHUD::setupInstrumentLayout()
     {
-        float centerX = screenWidth_ * 0.5f; // Para futuros instrumentos centrados
+        float centerX = screenWidth_ * 0.5f; // For future centered instruments
         float centerY = screenHeight_ * 0.5f;
 
         // ------------------------------------------------------------------------
-        // SPEED INDICATOR (Velocidad) - IZQUIERDA
+        // SPEED INDICATOR - LEFT
         // ------------------------------------------------------------------------
         {
             const float WIDTH = 120.0f;
@@ -239,7 +239,7 @@ namespace hud
         }
 
         // ------------------------------------------------------------------------
-        // ALTIMETER (Altímetro) - DERECHA
+        // ALTIMETER - RIGHT
         // ------------------------------------------------------------------------
         {
             const float WIDTH = 120.0f;
@@ -256,26 +256,26 @@ namespace hud
         }
 
         // ------------------------------------------------------------------------
-        // VERTICAL SPEED INDICATOR (VSI) - ENTRE CENTRO Y ALTÍMETRO
+        // VERTICAL SPEED INDICATOR (VSI) - BETWEEN CENTER AND ALTIMETER
         // ------------------------------------------------------------------------
         {
-            const float WIDTH = 80.0f;            // Más estrecho que los tapes principales
-            const float HEIGHT = 225.0f;          // 50% de altura de los tapes principales
-            const float GAP_TO_ALTIMETER = 20.0f; // Separación mínima recomendada
-            const float GAP_TO_FPV = 12.0f;       // Separación mínima respecto al eje central
+            const float WIDTH = 80.0f;            // Narrower than main tapes
+            const float HEIGHT = 225.0f;          // 50% height of main tapes
+            const float GAP_TO_ALTIMETER = 20.0f; // Minimum recommended separation
+            const float GAP_TO_FPV = 12.0f;       // Minimum separation from center axis
 
-            // Recalcular posición del altímetro (coincidir con bloque anterior)
+            // Recalculate altimeter position (match previous block)
             const float ALT_WIDTH = 120.0f;
             const float ALT_HEIGHT = 450.0f;
             (void)ALT_HEIGHT;
             const float ALT_MARGIN_RIGHT = 30.0f;
             float altPosX = screenWidth_ - ALT_WIDTH - ALT_MARGIN_RIGHT;
 
-            // Posición ideal: a la izquierda del altímetro, separado fijo
-            float desiredRight = altPosX - GAP_TO_ALTIMETER; // borde derecho del VSI
-            float posX = desiredRight - WIDTH;               // borde izquierdo del VSI
+            // Ideal position: left of altimeter, fixed separation
+            float desiredRight = altPosX - GAP_TO_ALTIMETER; // VSI right edge
+            float posX = desiredRight - WIDTH;               // VSI left edge
 
-            // Asegurar separación mínima desde el eje central (FPV)
+            // Ensure minimum separation from center axis (FPV)
             float minPosX = centerX + GAP_TO_FPV;
             if (posX < minPosX)
                 posX = minPosX;
@@ -289,10 +289,10 @@ namespace hud
         }
 
         // ------------------------------------------------------------------------
-        // WAYPOINT INDICATOR (Navegación) - CENTRO SUPERIOR
+        // WAYPOINT INDICATOR (Navigation) - TOP CENTER
         // ------------------------------------------------------------------------
         {
-            const float PANEL_WIDTH = 159.0f; // Bounding box actual de la rosa
+            const float PANEL_WIDTH = 159.0f; // Current bounding box of the rose
             const float PANEL_HEIGHT = 134.0f;
             const float COMPASS_CENTER_OFFSET_X = 92.0f; // 12 + 25 + 55
             const float COMPASS_CENTER_OFFSET_Y = 67.0f; // 12 + 55
@@ -311,11 +311,11 @@ namespace hud
         }
 
         // ------------------------------------------------------------------------
-        // PITCH LADDER (Escalera de Cabeceo) - CENTRO
+        // PITCH LADDER - CENTER
         // ------------------------------------------------------------------------
         {
-            // PitchLadder ocupa toda la pantalla (coordenadas relativas al centro)
-            // Le pasamos las dimensiones completas para que pueda calcular conversiones NDC->píxeles
+            // PitchLadder occupies the entire screen (coordinates relative to center)
+            // We pass full dimensions so it can calculate NDC->pixel conversions
             pitchLadder_->setPosition(glm::vec2(0.0f, 0.0f));
             pitchLadder_->setSize(glm::vec2(static_cast<float>(screenWidth_), static_cast<float>(screenHeight_)));
             pitchLadder_->setColor(hudColor_);
@@ -323,11 +323,11 @@ namespace hud
         }
 
         // ------------------------------------------------------------------------
-        // BANK ANGLE INDICATOR (Indicador de Alabeo) - ABAJO CENTRO
+        // BANK ANGLE INDICATOR - BOTTOM CENTER
         // ------------------------------------------------------------------------
         {
-            // BankAngleIndicator también usa toda la pantalla para conversiones NDC
-            // Se dibuja en la parte inferior (NDC_CENTER_Y = -0.85)
+            // BankAngleIndicator also uses the entire screen for NDC conversions
+            // Drawn at the bottom (NDC_CENTER_Y = -0.85)
             bankAngleIndicator_->setPosition(glm::vec2(0.0f, 0.0f));
             bankAngleIndicator_->setSize(glm::vec2(static_cast<float>(screenWidth_), static_cast<float>(screenHeight_)));
             bankAngleIndicator_->setColor(hudColor_);

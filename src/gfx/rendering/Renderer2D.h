@@ -1,3 +1,8 @@
+/**
+ * @file Renderer2D.h
+ * @brief 2D batch renderer for HUD and UI elements.
+ */
+
 #pragma once
 #include <vector>
 #include <glm/glm.hpp>
@@ -12,7 +17,7 @@ extern "C"
 namespace gfx
 {
 
-    /// Representa un vértice 2D con posición, color y coordenada UV opcional.
+    /// Represents a 2D vertex with position, color, and optional UV coordinate.
     struct Vertex2D
     {
         glm::vec2 position;
@@ -21,11 +26,11 @@ namespace gfx
     };
 
     /**
-     * @brief Batch renderer simple para HUDs e instrumentos 2D.
+     * @brief Simple batch renderer for HUDs and 2D instruments.
      *
-     * Acumula vértices en CPU y los descarga en un VBO dinámico mediante flush.
-     * Soporta líneas engrosadas, rectángulos, círculos y primitivas específicas
-     * para instrumentos (ticks, escalas, polilíneas, triángulos indicadores).
+     * Accumulates vertices on the CPU and flushes them to a dynamic VBO.
+     * Supports thickened lines, rectangles, circles, and specific primitives
+     * for instruments (ticks, scales, polylines, indicator triangles).
      */
     class Renderer2D
     {
@@ -33,49 +38,49 @@ namespace gfx
         Renderer2D();
         ~Renderer2D();
 
-        // No permitir copia
+        // Disallow copy
         Renderer2D(const Renderer2D &) = delete;
         Renderer2D &operator=(const Renderer2D &) = delete;
 
         /**
-         * @brief Configura buffers y proyección ortográfica.
-         * @param screenWidth Ancho actual de la superficie de dibujo.
-         * @param screenHeight Alto actual.
+         * @brief Configures buffers and orthographic projection.
+         * @param screenWidth Current width of the drawing surface.
+         * @param screenHeight Current height.
          */
         void init(int screenWidth, int screenHeight);
-        /// Actualiza la proyección cuando el HUD cambia de resolución.
+        /// Updates the projection when the HUD resolution changes.
         void setScreenSize(int width, int height);
 
-        // Comenzar/terminar batch de renderizado
+        // Begin/end rendering batch
         void begin();
         void end();
         void flush();
 
-        /// Cambia el atlas/textura activa para las primitivas batcheadas.
+        /// Changes the active atlas/texture for batched primitives.
         void setTexture(GLuint textureId);
 
-        // Primitivas básicas
+        // Basic primitives
         void drawLine(const glm::vec2 &start, const glm::vec2 &end, const glm::vec4 &color, float thickness = 1.0f);
         void drawRect(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, bool filled = true);
         void drawCircle(const glm::vec2 &center, float radius, const glm::vec4 &color, int segments = 32, bool filled = true);
         void drawArc(const glm::vec2 &center, float radius, float startAngle, float endAngle, const glm::vec4 &color, int segments = 32);
 
-        // Formas específicas para instrumentos
+        // Instrument-specific shapes
         void drawTick(const glm::vec2 &center, float angle, float innerRadius, float outerRadius, const glm::vec4 &color, float thickness = 1.0f);
         void drawScale(const glm::vec2 &center, float radius, float startAngle, float endAngle, int numTicks, const glm::vec4 &color);
 
-        // Primitivas adicionales para instrumentos HUD de actitud
+        // Additional primitives for attitude HUD instruments
         void drawPolyline(const std::vector<glm::vec2> &points, const glm::vec4 &color, float thickness = 1.0f, bool closed = false);
         void drawTriangle(const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec4 &color, bool filled = false);
         void drawTexturedQuad(const glm::vec2 &topLeft, const glm::vec2 &bottomRight, const glm::vec4 &color,
                               const glm::vec2 &uvMin, const glm::vec2 &uvMax);
 
     private:
-        GLuint vao_, vbo_, ebo_; ///< Objetos de buffer compartidos por todo el batch.
-        Shader shader_;          ///< Programa que dibuja primitivas coloreadas.
+        GLuint vao_, vbo_, ebo_; ///< Buffer objects shared by the entire batch.
+        Shader shader_;          ///< Program that draws colored primitives.
 
-        std::vector<Vertex2D> vertices_; ///< Buffer CPU de vértices batcheados.
-        std::vector<GLuint> indices_;    ///< Indices CPU alineados al mismo batch.
+        std::vector<Vertex2D> vertices_; ///< CPU buffer of batched vertices.
+        std::vector<GLuint> indices_;    ///< CPU indices aligned to the same batch.
 
         glm::mat4 projection_;
         int screenWidth_, screenHeight_;

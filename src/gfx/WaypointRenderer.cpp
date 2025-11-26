@@ -6,7 +6,7 @@
 namespace gfx
 {
     ////////////////////////////////////////////////////////////////////////////
-    //  Ciclo de vida
+    //  Lifecycle
     ////////////////////////////////////////////////////////////////////////////
 
     WaypointRenderer::~WaypointRenderer()
@@ -21,15 +21,15 @@ namespace gfx
 
     void WaypointRenderer::init()
     {
-        // 1) Compilar shader especializado (colorea cilindros con pulsos emisivos).
+        // 1) Compile specialized shader (colors cylinders with emissive pulses).
         shader_.load("shaders/waypoint.vert", "shaders/waypoint.frag");
 
-        // 2) Construir la geometría estándar compartida por todos los waypoints.
+        // 2) Build standard geometry shared by all waypoints.
         createCylinderGeometry();
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Geometría del cilindro
+    //  Cylinder Geometry
     ////////////////////////////////////////////////////////////////////////////
 
     void WaypointRenderer::createCylinderGeometry()
@@ -41,14 +41,14 @@ namespace gfx
         std::vector<float> vertices;
         std::vector<unsigned int> indices;
 
-        // Generar vértices del cilindro (pares inferior/superior con normal).
+        // Generate cylinder vertices (bottom/top pairs with normal).
         for (int i = 0; i <= segments; ++i)
         {
             float angle = (float)i / (float)segments * 2.0f * M_PI;
             float x = radius * cosf(angle);
             float z = radius * sinf(angle);
 
-            // Vértice inferior
+            // Bottom vertex
             vertices.push_back(x);
             vertices.push_back(0.0f);
             vertices.push_back(z);
@@ -57,7 +57,7 @@ namespace gfx
             vertices.push_back(0.0f);
             vertices.push_back(z / radius);
 
-            // Vértice superior
+            // Top vertex
             vertices.push_back(x);
             vertices.push_back(height);
             vertices.push_back(z);
@@ -67,15 +67,15 @@ namespace gfx
             vertices.push_back(z / radius);
         }
 
-        // Construir índices para cada quad lateral (2 triángulos por segmento).
+        // Build indices for each side quad (2 triangles per segment).
         for (int i = 0; i < segments; ++i)
         {
             int base = i * 2;
-            // Triángulo 1
+            // Triangle 1
             indices.push_back(base);
             indices.push_back(base + 1);
             indices.push_back(base + 2);
-            // Triángulo 2
+            // Triangle 2
             indices.push_back(base + 1);
             indices.push_back(base + 3);
             indices.push_back(base + 2);
@@ -83,7 +83,7 @@ namespace gfx
 
         indexCount_ = indices.size();
 
-        // Reservar buffers en GPU y subir datos.
+        // Reserve GPU buffers and upload data.
         glGenVertexArrays(1, &vao_);
         glGenBuffers(1, &vbo_);
         glGenBuffers(1, &ebo_);
@@ -96,7 +96,7 @@ namespace gfx
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-        // Attribute 0: posición (vec3)
+        // Attribute 0: position (vec3)
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(0);
 
@@ -117,7 +117,7 @@ namespace gfx
     {
         shader_.use();
 
-        // Trasladar el cilindro unitario a la posición del waypoint.
+        // Translate the unit cylinder to the waypoint position.
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, position);
 
@@ -128,8 +128,8 @@ namespace gfx
         shader_.setFloat("waypointAlpha", color.a);
         shader_.setBool("isActive", isActive);
 
-        // El shader requiere la posición del observador para efectos especulares
-        // simples; se obtiene invirtiendo la matriz de vista.
+        // The shader requires the observer's position for simple specular effects;
+        // obtained by inverting the view matrix.
         glm::mat4 viewInv = glm::inverse(view);
         glm::vec3 viewPos = glm::vec3(viewInv[3]);
         shader_.setVec3("viewPos", viewPos);

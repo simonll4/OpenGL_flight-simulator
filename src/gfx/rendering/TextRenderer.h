@@ -1,3 +1,8 @@
+/**
+ * @file TextRenderer.h
+ * @brief 7-segment display style text renderer.
+ */
+
 #pragma once
 #include <string>
 #include <glm/glm.hpp>
@@ -7,24 +12,23 @@ namespace gfx
 {
     /**
      * @class TextRenderer
-     * @brief Utilidad estática para texto estilo display de 7 segmentos.
+     * @brief Static utility for 7-segment display style text.
      *
-     * Se apoya en `Renderer2D` para dibujar bloques rectangulares que simulan
-     * segmentos encendidos. Toda la lógica es stateless: la posición y tamaño
-     * quedan definidos por los parámetros en cada llamada.
+     * Relies on `Renderer2D` to draw rectangular blocks simulating lit segments.
+     * All logic is stateless: position and size are defined by parameters in each call.
      */
     class TextRenderer
     {
     public:
         /**
-         * @brief Dibuja una cadena de texto en la pantalla.
+         * @brief Draws a text string on the screen.
          *
-         * @param renderer El renderizador 2D a utilizar.
-         * @param text La cadena de texto a dibujar.
-         * @param position La posición central del texto.
-         * @param charSize El tamaño (ancho, alto) de cada caracter.
-         * @param color El color del texto.
-         * @param spacing El espaciado horizontal total para cada caracter (advance).
+         * @param renderer The 2D renderer to use.
+         * @param text The text string to draw.
+         * @param position The center position of the text.
+         * @param charSize The size (width, height) of each character.
+         * @param color The text color.
+         * @param spacing The total horizontal spacing for each character (advance).
          */
         static void drawString(
             Renderer2D &renderer,
@@ -36,13 +40,13 @@ namespace gfx
 
     private:
         /**
-         * @brief Dibuja un único caracter en estilo de 7 segmentos.
+         * @brief Draws a single character in 7-segment style.
          *
-         * @param renderer El renderizador 2D a utilizar.
-         * @param character El caracter a dibujar.
-         * @param pos La posición de la esquina superior izquierda del caracter.
-         * @param size El tamaño (ancho, alto) del caracter.
-         * @param color El color del caracter.
+         * @param renderer The 2D renderer to use.
+         * @param character The character to draw.
+         * @param pos The top-left position of the character.
+         * @param size The size (width, height) of the character.
+         * @param color The character color.
          */
         static void drawChar7Segment(
             Renderer2D &renderer,

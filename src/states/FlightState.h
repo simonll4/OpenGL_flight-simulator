@@ -1,3 +1,8 @@
+/**
+ * @file FlightState.h
+ * @brief Active flight simulation state.
+ */
+
 #pragma once
 
 #include "states/IModeState.h"
@@ -5,6 +10,13 @@
 namespace states
 {
 
+    /**
+     * @class FlightState
+     * @brief Handles the active flight simulation mode.
+     *
+     * Manages the simulation loop, including input handling, physics updates,
+     * rendering of the 3D world and HUD, and mission progress tracking.
+     */
     class FlightState : public IModeState
     {
     public:

@@ -14,9 +14,9 @@ namespace mission
     enum class AppState
     {
         Menu,     // Menú principal de selección
-        Planning, // Vista superior para planificar la misión
+        Planning, // Vista para planificar la misión
         Running,  // Ejecutando simulador
-        Paused,   // Pausado (opcional para futuro)
+        Paused,   // Pausado (sin implementar)
         Exiting   // Saliendo
     };
 

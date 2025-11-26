@@ -78,7 +78,7 @@ namespace states
             }
 
             std::cout << "\n==============================================\n";
-            std::cout << "  Misión iniciada: " << mission.name << "\n";
+            std::cout << "  Mission started: " << mission.name << "\n";
             std::cout << "==============================================\n"
                       << std::endl;
 

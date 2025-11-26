@@ -1,3 +1,8 @@
+/**
+ * @file MissionController.h
+ * @brief Mission lifecycle orchestrator.
+ */
+
 #pragma once
 
 #include <string>

@@ -9,7 +9,7 @@ namespace gfx
 {
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Ciclo de vida
+    //  Lifecycle
     ////////////////////////////////////////////////////////////////////////////
 
     Renderer2D::Renderer2D() : vao_(0), vbo_(0), ebo_(0), screenWidth_(800), screenHeight_(600), currentTexture_(0)
@@ -33,12 +33,12 @@ namespace gfx
         screenWidth_ = screenWidth;
         screenHeight_ = screenHeight;
 
-        // Crear proyección ortográfica pixel-perfect para HUD (origen arriba-izquierda).
+        // Create pixel-perfect orthographic projection for HUD (origin top-left).
         projection_ = glm::ortho(0.0f, (float)screenWidth_, (float)screenHeight_, 0.0f, -1.0f, 1.0f);
 
         setupBuffers();
 
-        // Compilar shader que aplica color sólido (sin texturas por ahora).
+        // Compile shader that applies solid color (no textures for now).
         shader_.load("shaders/hud.vert", "shaders/hud.frag");
     }
 
@@ -85,7 +85,7 @@ namespace gfx
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Ciclo de batch
+    //  Batch Cycle
     ////////////////////////////////////////////////////////////////////////////
 
     void Renderer2D::begin()
@@ -105,14 +105,14 @@ namespace gfx
         if (vertices_.empty())
             return;
 
-        // Subir datos a GPU
+        // Upload data to GPU
         glBindBuffer(GL_ARRAY_BUFFER, vbo_);
         glBufferSubData(GL_ARRAY_BUFFER, 0, vertices_.size() * sizeof(Vertex2D), vertices_.data());
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
         glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices_.size() * sizeof(GLuint), indices_.data());
 
-        // Renderizar
+        // Render
         shader_.use();
         shader_.setMat4("uProjection", projection_);
         shader_.setBool("uUseTexture", currentTexture_ != 0);
@@ -126,7 +126,7 @@ namespace gfx
 
         checkGLError("Flushing 2D renderer");
 
-        // Limpiar después de renderizar para evitar mezcla de batches consecutivos.
+        // Clear after rendering to avoid mixing consecutive batches.
         vertices_.clear();
         indices_.clear();
     }
@@ -137,7 +137,7 @@ namespace gfx
         {
             return;
         }
-        // Finalizar el batch actual antes de cambiar de textura
+        // Finish the current batch before changing texture
         flush();
         currentTexture_ = textureId;
     }
@@ -155,7 +155,7 @@ namespace gfx
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Helpers de construcción de primitivas
+    //  Primitive Construction Helpers
     ////////////////////////////////////////////////////////////////////////////
 
     void Renderer2D::addVertex(const Vertex2D &vertex)
@@ -174,13 +174,13 @@ namespace gfx
         ensureCapacity(4, 6);
         GLuint baseIndex = vertices_.size();
 
-        // Cuatro vértices del quad
+        // Four vertices of the quad
         addVertex({{pos.x, pos.y}, color, {0.0f, 0.0f}});
         addVertex({{pos.x + size.x, pos.y}, color, {1.0f, 0.0f}});
         addVertex({{pos.x + size.x, pos.y + size.y}, color, {1.0f, 1.0f}});
         addVertex({{pos.x, pos.y + size.y}, color, {0.0f, 1.0f}});
 
-        // Dos triángulos
+        // Two triangles
         indices_.push_back(baseIndex);
         indices_.push_back(baseIndex + 1);
         indices_.push_back(baseIndex + 2);
@@ -198,13 +198,13 @@ namespace gfx
 
         GLuint baseIndex = vertices_.size();
 
-        // Cuatro vértices para la línea gruesa
+        // Four vertices for the thick line
         addVertex({{start.x - perpendicular.x, start.y - perpendicular.y}, color, {0.0f, 0.0f}});
         addVertex({{start.x + perpendicular.x, start.y + perpendicular.y}, color, {1.0f, 0.0f}});
         addVertex({{end.x + perpendicular.x, end.y + perpendicular.y}, color, {1.0f, 1.0f}});
         addVertex({{end.x - perpendicular.x, end.y - perpendicular.y}, color, {0.0f, 1.0f}});
 
-        // Dos triángulos
+        // Two triangles
         indices_.push_back(baseIndex);
         indices_.push_back(baseIndex + 1);
         indices_.push_back(baseIndex + 2);
@@ -222,7 +222,7 @@ namespace gfx
         }
         else
         {
-            // Dibujar borde
+            // Draw border
             float thickness = 1.0f;
             drawLine(position, {position.x + size.x, position.y}, color, thickness);
             drawLine({position.x + size.x, position.y}, position + size, color, thickness);
@@ -255,7 +255,7 @@ namespace gfx
         }
         else
         {
-            // Dibujar borde
+            // Draw border
             for (int i = 0; i < segments; ++i)
             {
                 float angle1 = 2.0f * M_PI * i / segments;
@@ -299,7 +299,7 @@ namespace gfx
         for (int i = 0; i <= numTicks; ++i)
         {
             float angle = startAngle + angleRange * i / numTicks;
-            float tickLength = (i % 5 == 0) ? 10.0f : 5.0f; // Ticks más largos cada 5
+            float tickLength = (i % 5 == 0) ? 10.0f : 5.0f; // Longer ticks every 5
             drawTick(center, angle, radius - tickLength, radius, color, 1.0f);
         }
     }
@@ -309,13 +309,13 @@ namespace gfx
         if (points.size() < 2)
             return;
 
-        // Dibujar líneas conectadas
+        // Draw connected lines
         for (size_t i = 0; i < points.size() - 1; ++i)
         {
             drawLine(points[i], points[i + 1], color, thickness);
         }
 
-        // Si es cerrada, conectar último con primero
+        // If closed, connect last to first
         if (closed && points.size() > 2)
         {
             drawLine(points[points.size() - 1], points[0], color, thickness);
@@ -339,7 +339,7 @@ namespace gfx
         }
         else
         {
-            // Dibujar borde como polilínea cerrada
+            // Draw border as closed polyline
             drawPolyline({p1, p2, p3}, color, 1.0f, true);
         }
     }

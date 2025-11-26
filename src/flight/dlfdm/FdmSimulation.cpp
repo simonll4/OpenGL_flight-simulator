@@ -25,10 +25,14 @@ namespace flight
 
     void FdmSimulation::initialize()
     {
+        // Set up default aircraft parameters
         aircraftParams_ = buildDefaultAircraft();
+        
+        // Set up initial trim state (steady level flight)
         trimState_ = buildDefaultTrimState();
         trimControls_ = buildDefaultTrimControls();
 
+        // Initialize the solver
         solver_ = std::make_unique<dlfdm::FDMSolver>(aircraftParams_, fixedTimeStep_);
         solver_->setState(trimState_);
 
@@ -43,25 +47,25 @@ namespace flight
         const float elevatorAuthority = glm::radians(8.0f);
         const float aileronAuthority = glm::radians(12.0f);
 
-        // Elevator -----------------------------------------------------------
+        // Elevator: Apply trim and scale input
         float commandedElevator = trimControls_.elevator + elevator * elevatorAuthority;
         controls_.elevator = glm::clamp(commandedElevator,
                                         aircraftParams_.min_elevator,
                                         aircraftParams_.max_elevator);
 
-        // Aileron - FDM maneja damping automáticamente
+        // Aileron: Apply trim and scale input
         float commandedAileron = trimControls_.aileron + aileron * aileronAuthority;
         controls_.aileron = glm::clamp(commandedAileron,
                                        aircraftParams_.min_aileron,
                                        aircraftParams_.max_aileron);
 
-        // Rudder -------------------------------------------------------------
+        // Rudder: Apply trim and scale input
         float commandedRudder = trimControls_.rudder + rudder * aircraftParams_.max_rudder;
         controls_.rudder = glm::clamp(commandedRudder,
                                       -aircraftParams_.max_rudder,
                                       aircraftParams_.max_rudder);
 
-        // Throttle -----------------------------------------------------------
+        // Throttle: Clamp to [0, 1]
         controls_.throttle = glm::clamp(throttle, 0.0f, 1.0f);
     }
 
@@ -97,6 +101,7 @@ namespace flight
             return;
         }
 
+        // Fixed time step accumulation
         accumulator_ += deltaTime;
         while (accumulator_ >= fixedTimeStep_)
         {
@@ -111,6 +116,7 @@ namespace flight
             accumulator_ -= fixedTimeStep_;
         }
 
+        // Sync internal state with the solver's state
         syncState();
     }
 

@@ -1,3 +1,8 @@
+/**
+ * @file MenuState.h
+ * @brief Main menu state for mission selection.
+ */
+
 #pragma once
 
 #include "states/IModeState.h"
@@ -5,6 +10,12 @@
 namespace states
 {
 
+    /**
+     * @class MenuState
+     * @brief Handles the main menu of the simulator.
+     *
+     * Displays the list of available missions and allows the user to select one.
+     */
     class MenuState : public IModeState
     {
     public:

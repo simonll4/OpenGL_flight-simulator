@@ -1,3 +1,8 @@
+/**
+ * @file BankAngleIndicator.h
+ * @brief Bank angle (roll) indicator with moving graduations.
+ */
+
 #pragma once
 #include "../../core/Instrument.h"
 #include "../../../gfx/rendering/Renderer2D.h"
@@ -9,16 +14,16 @@ namespace hud
 {
     /**
      * @class BankAngleIndicator
-     * @brief Indicador de ángulo de alabeo (bank angle/roll)
+     * @brief Bank angle (roll) indicator.
      *
-     * Muestra el ángulo de inclinación lateral del avión mediante:
-     * - Línea base inclinada fija (ligera pendiente ascendente)
-     * - Triángulo indicador fijo (aguja) en el centro
-     * - 5 marcas graduadas móviles (cada 10°)
-     * - Números cada 20° para referencia
+     * Displays the aircraft's lateral inclination angle using:
+     * - Fixed inclined base line (slight upward slope).
+     * - Fixed indicator triangle (needle) at the center.
+     * - 5 moving graduated marks (every 10 degrees).
+     * - Numbers every 20 degrees for reference.
      *
-     * Basado en UI::BankAngleIndicator del proyecto computacion_grafica/simulador,
-     * adaptado para usar Renderer2D y coordenadas en píxeles.
+     * Based on UI::BankAngleIndicator from the computacion_grafica/simulador project,
+     * adapted to use Renderer2D and pixel coordinates.
      */
     class BankAngleIndicator : public Instrument
     {
@@ -27,82 +32,82 @@ namespace hud
         ~BankAngleIndicator() = default;
 
         /**
-         * @brief Renderiza el indicador de bank angle
-         * @param renderer Renderer2D compartido
-         * @param flightData Datos de vuelo (usa flightData.roll)
+         * @brief Renders the bank angle indicator.
+         * @param renderer Shared Renderer2D.
+         * @param flightData Flight data (uses flightData.roll).
          */
         void render(gfx::Renderer2D &renderer, const flight::FlightData &flightData) override;
 
     private:
         // ====================================================================
-        // CONSTANTES DE CONFIGURACIÓN
+        // CONFIGURATION CONSTANTS
         // ====================================================================
 
-        // Línea central del semicírculo en NDC (zona superior del HUD)
+        // Center line of the semicircle in NDC (upper HUD area)
         static constexpr float NDC_CENTER_Y = -0.85f;
 
-        // Longitud de la barra base y pendiente fija para dar sensación de arco
-        static constexpr float NDC_LINE_WIDTH = 0.45f; // Un poco más ancho
-        static constexpr float NDC_LINE_SLOPE = 0.15f; // Pendiente más pronunciada (15%) para menos "achatamiento"
+        // Base bar length and fixed slope to give an arc sensation
+        static constexpr float NDC_LINE_WIDTH = 0.45f; // Slightly wider
+        static constexpr float NDC_LINE_SLOPE = 0.15f; // Steeper slope (15%) for less "flattening"
 
-        // Separación entre marcas (10°) y alturas diferenciadas para mayor/menor
-        static constexpr float NDC_LINE_SPACING = 0.05f; // Un poco más de espacio
+        // Separation between marks (10 degrees) and differentiated heights for major/minor
+        static constexpr float NDC_LINE_SPACING = 0.05f; // Slightly more space
         static constexpr float DEGREES_PER_LINE = 10.0f;
-        static constexpr float NDC_MARK_HEIGHT_MAJOR = 0.06f; // Marcas más altas
-        static constexpr float NDC_MARK_HEIGHT_MINOR = 0.04f; // Marcas secundarias más visibles
+        static constexpr float NDC_MARK_HEIGHT_MAJOR = 0.06f; // Taller marks
+        static constexpr float NDC_MARK_HEIGHT_MINOR = 0.04f; // More visible secondary marks
 
-        // Triángulo indicador (aguja)
+        // Indicator triangle (needle)
         static constexpr float NDC_NEEDLE_OFFSET = 0.03f;
         static constexpr float NDC_TRIANGLE_SIZE = 0.020f;
 
-        // Tamaño en píxeles para renderizar números +/-20°
+        // Size in pixels for rendering +/-20 degree numbers
         static constexpr float DIGIT_WIDTH = 8.0f;
         static constexpr float DIGIT_HEIGHT = 12.0f;
 
         // ====================================================================
-        // MÉTODOS DE DIBUJO PRIVADOS
+        // PRIVATE DRAWING METHODS
         // ====================================================================
 
         /**
-         * @brief Dibuja la línea base inclinada fija
+         * @brief Draws the fixed inclined base line.
          *
-         * La barra actúa como horizonte estático ligeramente inclinado.
-         * Se deja deshabilitada por defecto para un HUD más limpio.
+         * The bar acts as a slightly inclined static horizon.
+         * It is left disabled by default for a cleaner HUD.
          */
         void drawBaseLine(gfx::Renderer2D &renderer, float centerX, float centerY);
 
         /**
-         * @brief Dibuja las 5 marcas graduadas móviles y sus números
+         * @brief Draws the 5 moving graduated marks and their numbers.
          *
-         * Calcula la posición relativa de cada marca respecto al roll actual
-         * y limita la visibilidad a dos marcas por lado para reducir ruido.
+         * Calculates the relative position of each mark with respect to the current roll
+         * and limits visibility to two marks per side to reduce noise.
          */
         void drawGraduations(gfx::Renderer2D &renderer, float centerX, float centerY,
                              float leftX, float leftY, float rightX, float rightY,
                              float rollAngle);
 
         /**
-         * @brief Dibuja el triángulo indicador (aguja) fijo
+         * @brief Draws the fixed indicator triangle (needle).
          *
-         * Resalta el punto de referencia estático con un color más brillante.
+         * Highlights the static reference point with a brighter color.
          */
         void drawNeedle(gfx::Renderer2D &renderer, float centerX, float centerY);
 
         /**
-         * @brief Convierte coordenadas NDC a píxeles dentro del viewport asignado
-         * @param ndcX Coordenada X en NDC (-1.0 a 1.0)
-         * @param ndcY Coordenada Y en NDC (-1.0 a 1.0)
-         * @return Coordenada en píxeles relativa a position_/size_
+         * @brief Converts NDC coordinates to pixels within the assigned viewport.
+         * @param ndcX X coordinate in NDC (-1.0 to 1.0).
+         * @param ndcY Y coordinate in NDC (-1.0 to 1.0).
+         * @return Coordinate in pixels relative to position_/size_.
          *
-         * Aprovecha la caja asignada al instrumento para escalar valores
-         * -1..1 a offsets en pantalla respetando el origen superior izquierdo.
+         * Leverages the box assigned to the instrument to scale values
+         * -1..1 to screen offsets respecting the top-left origin.
          */
         glm::vec2 ndcToPixels(float ndcX, float ndcY) const;
 
         /**
-         * @brief Normaliza ángulo de roll a rango -180° a 180°
+         * @brief Normalizes roll angle to range -180 to 180 degrees.
          *
-         * Evita saltos bruscos cuando el simulador reporta valores > 360°.
+         * Prevents sudden jumps when the simulator reports values > 360 degrees.
          */
         float normalizeRoll(float roll) const;
     };

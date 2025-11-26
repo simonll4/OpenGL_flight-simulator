@@ -5,33 +5,33 @@ namespace gfx
 {
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Inicialización del programa
+    //  Program Initialization
     ////////////////////////////////////////////////////////////////////////////
 
     void Shader::load(const char *vsPath, const char *fsPath)
     {
-        // 1) Obtener el código fuente desde disco (lanza en caso de error I/O).
+        // 1) Get source code from disk (throws on I/O error).
         std::string vertexCode = readFile(vsPath);
         std::string fragmentCode = readFile(fsPath);
 
-        // 2) Compilar cada etapa del pipeline.
+        // 2) Compile each pipeline stage.
         GLuint vertex = compileShader(vertexCode, GL_VERTEX_SHADER);
         GLuint fragment = compileShader(fragmentCode, GL_FRAGMENT_SHADER);
 
-        // 3) Crear el programa, adjuntar etapas y linkear.
+        // 3) Create program, attach stages, and link.
         prog_ = glCreateProgram();
         glAttachShader(prog_, vertex);
         glAttachShader(prog_, fragment);
         glLinkProgram(prog_);
         checkCompileErrors(prog_, "PROGRAM");
 
-        // 4) Almacenar solo el programa final; las etapas independientes se descartan.
+        // 4) Store only the final program; independent stages are discarded.
         glDeleteShader(vertex);
         glDeleteShader(fragment);
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Upload de uniformes
+    //  Uniform Uploads
     ////////////////////////////////////////////////////////////////////////////
 
     void Shader::setMat4(const char *name, const glm::mat4 &m) const
@@ -80,7 +80,7 @@ namespace gfx
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Utilidades privadas
+    //  Private Utilities
     ////////////////////////////////////////////////////////////////////////////
 
     std::string Shader::readFile(const char *path)

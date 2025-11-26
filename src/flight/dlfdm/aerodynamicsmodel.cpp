@@ -30,6 +30,13 @@ namespace dlfdm
         body_moments_ = glm::vec3(0.0f);
     }
 
+    /**
+     * @brief Calculates the angle of attack (alpha) and sideslip angle (beta).
+     *
+     * @param vel Velocity vector in body frame.
+     * @param alpha Output angle of attack in radians.
+     * @param beta Output sideslip angle in radians.
+     */
     void AerodynamicsModel::calculate_angles(const glm::vec3 &vel, float &alpha, float &beta) const
     {
         float u = vel.x;
@@ -48,6 +55,14 @@ namespace dlfdm
         beta = glm::asin(glm::clamp(v / V, -1.0f, 1.0f));
     }
 
+    /**
+     * @brief Calculates aerodynamic forces and moments based on current state and controls.
+     *
+     * @param body_velocity Velocity vector in body frame.
+     * @param body_omega Angular velocity vector in body frame.
+     * @param controls Current control surface deflections.
+     * @return AeroDynamicForces Structure containing forces and moments in body frame.
+     */
     AerodynamicsModel::AeroDynamicForces AerodynamicsModel::calculate(const glm::vec3 &body_velocity,
                                                                       const glm::vec3 &body_omega,
                                                                       const ControlInputs &controls)

@@ -9,7 +9,7 @@ Este directorio resume los aspectos esenciales del simulador para que nuevas per
   - `src/core` – ciclo de vida de la aplicación y administración de estados.
   - `src/systems` – simulador de vuelo (DLFDM), cámara y waypoints.
   - `src/ui` – menús, planificador, overlay y HUD basado en `Renderer2D`.
-  - `src/gfx` – recursos 3D (terreno clipmap, skybox, modelo y shaders).
+  - `src/gfx` – recursos 3D (terreno plano texturizado, skybox, modelo y shaders).
 
 ## 2. Cómo Compilar y Ejecutar
 1. Instalar dependencias (Ubuntu/Debian):
@@ -41,8 +41,8 @@ FlightState (simulación + HUD + overlay)
 - **Simulación de Vuelo** (`systems/FlightSimulationController`)
   - Wrapper de `flight/dlfdm/FdmSimulation`.
   - Devuelve `flight::FlightData`, fuente oficial para instrumentos/UI.
-- **Gráficos** (`gfx/terrain/ClipmapTerrain`, `gfx/skybox`, `gfx/geometry`)
-  - Clipmap configurable, skybox + cubemap, modelo del avión con shader PBR básico.
+- **Gráficos** (`gfx/terrain/TerrainPlane`, `gfx/skybox`, `gfx/geometry`)
+  - Terreno plano texturizado (grid 3x3 siguiendo a la cámara con tiling), skybox + cubemap, modelo del avión con shader PBR básico.
 - **HUD** (`hud/core/FlightHUD`)
   - Instrumentos modulares (ver `docs/hud.md`).
   - Se renderiza sobre la vista cuando la cámara está en primera persona.

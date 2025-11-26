@@ -1,3 +1,8 @@
+/**
+ * @file TextureCube.h
+ * @brief OpenGL cubemap texture wrapper.
+ */
+
 #pragma once
 #include <string>
 #include <array>

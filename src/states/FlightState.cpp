@@ -19,7 +19,7 @@ extern "C"
 #include "systems/WaypointSystem.h"
 #include "ui/UIManager.h"
 #include "gfx/skybox/SkyboxRenderer.h"
-#include "gfx/terrain/ClipmapTerrain.h"
+#include "gfx/terrain/TerrainPlane.h"
 #include "gfx/core/Shader.h"
 #include "gfx/geometry/Model.h"
 
@@ -47,20 +47,20 @@ namespace states
             {
                 runtime.confirmReadyToFly();
                 context.uiManager->hideOverlay();
-                std::cout << "[FlightState] Piloto listo para volar" << std::endl;
+                std::cout << "[FlightState] Pilot ready to fly" << std::endl;
             }
 
             ui::CompletionChoice choice = context.uiManager->overlayChoice();
             if (choice == ui::CompletionChoice::ReturnToMenu)
             {
                 runtime.requestMenuExit();
-                std::cout << "[FlightState] Retorno al menú solicitado" << std::endl;
+                std::cout << "[FlightState] Return to menu requested" << std::endl;
             }
             else if (choice == ui::CompletionChoice::FreeFlight)
             {
                 runtime.continueFreeFlight();
                 context.uiManager->hideOverlay();
-                std::cout << "[FlightState] Continuando en modo vuelo libre" << std::endl;
+                std::cout << "[FlightState] Continuing in free flight mode" << std::endl;
             }
         }
 
@@ -100,7 +100,7 @@ namespace states
             if (!tabPressed_)
             {
                 runtime.requestMenuExit();
-                std::cout << "\n>>> TAB presionado - Volviendo al menú de misiones...\n"
+                std::cout << "\n>>> TAB pressed - Returning to mission menu...\n"
                           << std::endl;
                 tabPressed_ = true;
             }
@@ -159,7 +159,7 @@ namespace states
         if (runtime.isCompleted() && !completionPromptShown_)
         {
             context.uiManager->showCompletionPrompt(runtime);
-            std::cout << "[FlightState] Esperando decisión del piloto (SPACE=Vuelo libre, TAB=Menú)" << std::endl;
+            std::cout << "[FlightState] Waiting for pilot decision (SPACE=Free Flight, TAB=Menu)" << std::endl;
             completionPromptShown_ = true;
         }
 
@@ -221,10 +221,10 @@ namespace states
             context.skybox->draw(view, projection);
         }
 
-        if (context.clipmapConfig && context.terrain)
+        if (context.terrainConfig && context.terrain)
         {
-            context.clipmapConfig->fogMinDist = context.cameraRig->position().y * 0.5f;
-            context.clipmapConfig->fogMaxDist = context.cameraRig->dynamicFarPlane() * 0.8f;
+            context.terrainConfig->fogMinDist = context.cameraRig->position().y * 0.5f;
+            context.terrainConfig->fogMaxDist = context.cameraRig->dynamicFarPlane() * 0.8f;
             context.terrain->draw(view, projection, context.cameraRig->position(), glm::vec3(0.5f, 0.7f, 1.0f));
         }
 
@@ -291,13 +291,13 @@ namespace states
     {
         if (!context.missionController || !context.flightController)
         {
-            std::cout << "[WARN] No hay misión activa para reiniciar" << std::endl;
+            std::cout << "[WARN] No active mission to restart" << std::endl;
             return;
         }
 
         if (!context.missionController->hasActiveMission())
         {
-            std::cout << "[WARN] No hay misión activa para reiniciar" << std::endl;
+            std::cout << "[WARN] No active mission to restart" << std::endl;
             return;
         }
 
@@ -317,7 +317,7 @@ namespace states
             context.uiManager->resetOverlay();
             context.uiManager->showBriefing(context.missionController->currentMission());
         }
-        std::cout << "Misión reiniciada!" << std::endl;
+        std::cout << "Mission restarted!" << std::endl;
     }
 
 } // namespace states

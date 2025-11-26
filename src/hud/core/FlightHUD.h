@@ -1,3 +1,8 @@
+/**
+ * @file FlightHUD.h
+ * @brief Central coordinator for all HUD instruments.
+ */
+
 #pragma once
 #include <memory>
 #include <string>
@@ -7,7 +12,7 @@
 #include "../../flight/data/FlightData.h"
 #include "Instrument.h"
 
-// Includes de instrumentos implementados
+// Includes of implemented instruments
 #include "../instruments/flight/Altimeter.h"
 #include "../instruments/flight/SpeedIndicator.h"
 #include "../instruments/flight/VerticalSpeedIndicator.h"
@@ -15,18 +20,18 @@
 #include "../instruments/attitude/BankAngleIndicator.h"
 #include "../instruments/attitude/PitchLadder.h"
 
-// TODO: Agregar includes de futuros instrumentos
+// TODO: Add includes for future instruments
 // #include "HeadingIndicator.h"
 
 namespace hud
 {
     /**
      * @class FlightHUD
-     * @brief Coordinador central de todos los instrumentos del HUD.
+     * @brief Central coordinator for all HUD instruments.
      *
-     * Se encarga de instanciar cada instrumento, compartir un `Renderer2D`
-     * común, aplicar layouts responsivos y despachar datos de vuelo antes del
-     * render. Actúa como fachada entre la simulación y la capa de UI.
+     * Responsible for instantiating each instrument, sharing a common `Renderer2D`,
+     * applying responsive layouts, and dispatching flight data before rendering.
+     * Acts as a facade between the simulation and the UI layer.
      */
     class FlightHUD
     {
@@ -35,48 +40,48 @@ namespace hud
         ~FlightHUD() = default;
 
         // ========================================================================
-        // INICIALIZACIÓN Y CONFIGURACIÓN
+        // INITIALIZATION AND CONFIGURATION
         // ========================================================================
         /**
-         * @brief Inicializa el renderer 2D y aplica layout inicial.
-         * @param screenWidth Ancho del framebuffer en píxeles.
-         * @param screenHeight Alto del framebuffer en píxeles.
+         * @brief Initializes the 2D renderer and applies initial layout.
+         * @param screenWidth Framebuffer width in pixels.
+         * @param screenHeight Framebuffer height in pixels.
          */
         void init(int screenWidth, int screenHeight);
 
-        /// Ajusta matrices y layouts cuando cambia la resolución del HUD.
+        /// Adjusts matrices and layouts when HUD resolution changes.
         void setScreenSize(int width, int height);
 
-        /// Permite alternar layouts predefinidos (classic/modern/minimal).
+        /// Allows toggling predefined layouts (classic/modern/minimal).
         void setLayout(const std::string &layoutName);
 
         // ========================================================================
-        // ACTUALIZACIÓN Y RENDERIZADO
+        // UPDATE AND RENDERING
         // ========================================================================
 
-        /// Copia los datos de vuelo más recientes para consumo de los gauges.
+        /// Copies the most recent flight data for gauge consumption.
         void update(const flight::FlightData &flightData);
 
-        /// Renderiza todos los instrumentos como overlay 2D.
+        /// Renders all instruments as a 2D overlay.
         void render();
 
     private:
         // ========================================================================
-        // SISTEMA DE RENDERIZADO
+        // RENDERING SYSTEM
         // ========================================================================
 
-        std::unique_ptr<gfx::Renderer2D> renderer2D_; ///< Renderer compartido entre instrumentos.
+        std::unique_ptr<gfx::Renderer2D> renderer2D_; ///< Renderer shared among instruments.
 
         // ========================================================================
-        // INSTRUMENTOS DEL HUD
+        // HUD INSTRUMENTS
         // ========================================================================
 
-        // Contenedor polimórfico de instrumentos
-        // Permite gestionar todos los instrumentos de forma uniforme
-        std::vector<std::unique_ptr<Instrument>> instruments_; ///< Pool polimórfico (propiedad).
+        // Polymorphic container of instruments
+        // Allows managing all instruments uniformly
+        std::vector<std::unique_ptr<Instrument>> instruments_; ///< Polymorphic pool (ownership).
 
-        // Referencias rápidas a instrumentos específicos (opcional)
-        // Útil para configuración directa sin recorrer el vector
+        // Quick references to specific instruments (optional)
+        // Useful for direct configuration without traversing the vector
         Altimeter *altimeter_;
         SpeedIndicator *speedIndicator_;
         VerticalSpeedIndicator *verticalSpeedIndicator_;
@@ -84,30 +89,30 @@ namespace hud
         BankAngleIndicator *bankAngleIndicator_;
         PitchLadder *pitchLadder_;
 
-        // TODO: Agregar referencias a futuros instrumentos aquí
+        // TODO: Add references to future instruments here
         // HeadingIndicator* headingIndicator_;
 
         // ========================================================================
-        // DATOS Y CONFIGURACIÓN
+        // DATA AND CONFIGURATION
         // ========================================================================
 
-        flight::FlightData currentFlightData_; ///< Copia local para sincronizar render.
+        flight::FlightData currentFlightData_; ///< Local copy to synchronize render.
         int screenWidth_;
         int screenHeight_;
 
         // ========================================================================
-        // ESQUEMA DE COLORES DEL HUD
+        // HUD COLOR SCHEME
         // ========================================================================
 
-        glm::vec4 hudColor_;     ///< Color principal (verde HUD).
-        glm::vec4 warningColor_; ///< Color de advertencia (amarillo/ámbar).
-        glm::vec4 dangerColor_;  ///< Color de peligro (rojo).
+        glm::vec4 hudColor_;     ///< Main color (HUD green).
+        glm::vec4 warningColor_; ///< Warning color (yellow/amber).
+        glm::vec4 dangerColor_;  ///< Danger color (red).
 
         // ========================================================================
-        // CONFIGURACIÓN INTERNA
+        // INTERNAL CONFIGURATION
         // ========================================================================
 
-        /// Calcula posiciones/tamaños para todos los instrumentos actuales.
+        /// Calculates positions/sizes for all current instruments.
         void setupInstrumentLayout();
     };
 

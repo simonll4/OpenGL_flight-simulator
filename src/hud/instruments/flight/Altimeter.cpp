@@ -5,39 +5,39 @@
 namespace hud
 {
     ////////////////////////////////////////////////////////////////////////////
-    //  Configuración de la escala del tape
+    //  Tape Scale Configuration
     ////////////////////////////////////////////////////////////////////////////
 
-    // Espaciado entre marcas de altitud
-    static const float ALTITUDE_STEP = 100.0f;  // Marcas cada 100 pies
-    static const float PIXELS_PER_STEP = 30.0f; // Separación vertical entre marcas
-    static const int VISIBLE_MARKS = 12;        // Cuántas marcas mostrar arriba/abajo del centro
+    // Spacing between altitude marks
+    static const float ALTITUDE_STEP = 100.0f;  // Marks every 100 feet
+    static const float PIXELS_PER_STEP = 30.0f; // Vertical separation between marks
+    static const int VISIBLE_MARKS = 12;        // How many marks to show above/below center
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Configuración visual del tape
+    //  Tape Visual Configuration
     ////////////////////////////////////////////////////////////////////////////
 
-    // Ticks (marcas laterales)
-    static const float TICK_LENGTH = 16.0f;       // Longitud de las marcas horizontales
-    static const float TICK_TO_NUMBER_GAP = 6.0f; // Espacio entre tick y número
+    // Ticks (lateral marks)
+    static const float TICK_LENGTH = 16.0f;       // Length of horizontal marks
+    static const float TICK_TO_NUMBER_GAP = 6.0f; // Gap between tick and number
 
-    // Caja de lectura central
+    // Central readout box
     static const float READOUT_BOX_WIDTH = 120.0f;
     static const float READOUT_BOX_HEIGHT = 44.0f;
 
-    // Flecha indicadora (chevron)
+    // Indicator arrow (chevron)
     static const float CHEVRON_WIDTH = 10.0f;
     static const float CHEVRON_HEIGHT = 12.0f;
 
     Altimeter::Altimeter() : Instrument()
     {
-        // Configuración específica del altímetro
+        // Altimeter-specific configuration
         size_ = glm::vec2(100.0f, 400.0f);
-        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
+        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // HUD Green
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Función principal de renderizado
+    //  Main Render Function
     ////////////////////////////////////////////////////////////////////////////
 
     void Altimeter::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
@@ -54,25 +54,25 @@ namespace hud
 
     void Altimeter::drawBackground(gfx::Renderer2D &renderer)
     {
-        // El altímetro no tiene fondo - solo dibujar elementos sobre el HUD transparente
+        // Altimeter has no background - only draw elements on transparent HUD
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Tape de altitud (escala móvil)
+    //  Altitude Tape (Moving Scale)
     ////////////////////////////////////////////////////////////////////////////
 
     void Altimeter::drawAltitudeTape(gfx::Renderer2D &renderer, float altitude)
     {
-        // Calcular posiciones de referencia
-        float centerY = position_.y + size_.y * 0.5f; // Centro vertical del instrumento
-        float ticksX = position_.x + size_.x - 15.0f; // Columna donde van los ticks
+        // Calculate reference positions
+        float centerY = position_.y + size_.y * 0.5f; // Vertical center of instrument
+        float ticksX = position_.x + size_.x - 15.0f; // Column where ticks go
 
-        // Calcular el desplazamiento del tape basado en la altitud actual
+        // Calculate tape offset based on current altitude
         float baseAltitude = floor(altitude / ALTITUDE_STEP) * ALTITUDE_STEP;
         float fraction = (altitude - baseAltitude) / ALTITUDE_STEP;
         float scrollOffset = fraction * PIXELS_PER_STEP;
 
-        // Dibujar marcas de altitud visibles
+        // Draw visible altitude marks
         for (int i = -VISIBLE_MARKS; i <= VISIBLE_MARKS; ++i)
         {
             int markAltitude = (int)baseAltitude + i * (int)ALTITUDE_STEP;
@@ -104,7 +104,7 @@ namespace hud
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Caja de lectura digital
+    //  Digital Readout Box
     ////////////////////////////////////////////////////////////////////////////
 
     void Altimeter::drawCurrentAltitudeBox(gfx::Renderer2D &renderer, float altitude)

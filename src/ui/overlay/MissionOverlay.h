@@ -1,10 +1,10 @@
 /**
  * @file MissionOverlay.h
- * @brief Sistema de overlays para briefing y finalización de misiones
+ * @brief Overlay system for mission briefing and completion
  *
- * Renderiza mensajes modales durante las fases Briefing y Completed:
- * - Briefing: Muestra título, objetivos y prompt de inicio
- * - Completion: Muestra resumen y opciones (menú o vuelo libre)
+ * Renders modal messages during Briefing and Completed phases:
+ * - Briefing: Shows title, objectives, and start prompt
+ * - Completion: Shows summary and options (menu or free flight)
  */
 
 #pragma once
@@ -18,7 +18,7 @@
 #include "../../gfx/rendering/TextRenderer.h"
 #include "../../gfx/rendering/TrueTypeFont.h"
 
-// Forward declarations para evitar includes
+// Forward declarations to avoid includes
 struct GLFWwindow;
 
 namespace mission
@@ -31,17 +31,17 @@ namespace ui
 {
 
     /**
-     * @brief Opciones de finalización de misión
+     * @brief Mission completion options
      */
     enum class CompletionChoice
     {
-        None,         // Aún no se eligió
-        ReturnToMenu, // Volver al menú (ENTER)
-        FreeFlight    // Continuar en vuelo libre (SPACE)
+        None,         // Not yet chosen
+        ReturnToMenu, // Return to menu (ENTER)
+        FreeFlight    // Continue in free flight (SPACE)
     };
 
     /**
-     * @brief Overlay modal para misiones
+     * @brief Modal overlay for missions
      */
     class MissionOverlay
     {
@@ -50,70 +50,70 @@ namespace ui
         ~MissionOverlay() = default;
 
         /**
-         * @brief Inicializa recursos gráficos
+         * @brief Initializes graphics resources
          */
         void init(int screenWidth, int screenHeight);
         void setScreenSize(int screenWidth, int screenHeight);
 
         /**
-         * @brief Muestra el briefing de una misión
+         * @brief Shows the briefing of a mission
          */
         void showBriefing(const mission::MissionDefinition &mission);
 
         /**
-         * @brief Muestra el prompt de finalización
+         * @brief Shows the completion prompt
          */
         void showCompletionPrompt(const mission::MissionRuntime &runtime);
 
         /**
-         * @brief Oculta el overlay
+         * @brief Hides the overlay
          */
         void hide();
 
         /**
-         * @brief Renderiza el overlay
+         * @brief Renders the overlay
          */
         void render();
 
         /**
-         * @brief Actualiza animaciones
+         * @brief Updates animations
          */
         void update(float dt);
 
         /**
-         * @brief Procesa input del usuario
-         * @return true si se procesó alguna acción
+         * @brief Processes user input
+         * @return true if any action was processed
          */
         bool handleInput(GLFWwindow *window);
 
         /**
-         * @brief Verifica si el piloto está listo para volar (briefing)
+         * @brief Checks if the pilot is ready to fly (briefing)
          */
         bool readyToFly() const { return readyToFly_; }
 
         /**
-         * @brief Verifica si el overlay está visible
+         * @brief Checks if the overlay is visible
          */
         bool isVisible() const { return visible_; }
 
         /**
-         * @brief Obtiene la elección del usuario en pantalla de finalización
+         * @brief Gets user choice on completion screen
          */
         CompletionChoice getCompletionChoice() const { return completionChoice_; }
 
         /**
-         * @brief Resetea el estado del overlay
+         * @brief Resets the overlay state
          */
         void reset();
 
     private:
-        // Dimensiones de pantalla
+        // Screen dimensions
         int screenWidth_;
         int screenHeight_;
         bool rendererInitialized_ = false;
         gfx::Renderer2D renderer_;
 
-        // Estado
+        // State
         bool visible_;
         bool showingBriefing_;
         bool showingCompletion_;
@@ -121,16 +121,16 @@ namespace ui
         CompletionChoice completionChoice_;
         int selectedOption_; // 0 = menu, 1 = free flight
 
-        // Contenido
+        // Content
         std::string missionName_;
         std::string briefingText_;
         std::string metricsText_;
 
-        // Animación
+        // Animation
         float fadeAlpha_;
         float blinkTimer_;
 
-        // Control de input
+        // Input control
         bool enterKeyWasPressed_;
         bool spaceKeyWasPressed_;
         bool tabKeyWasPressed_;

@@ -1,6 +1,6 @@
 /**
  * @file MissionOverlay.cpp
- * @brief Implementación del sistema de overlays de misiones
+ * @brief Implementation of the mission overlay system
  */
 
 #include "MissionOverlay.h"
@@ -33,14 +33,14 @@ namespace ui
         rendererInitialized_ = true;
 
         const std::string fontPath = "assets/fonts/RobotoMono-Regular.ttf";
-        // Usar tamaño base mayor (96px) y atlas más grande para mejor calidad
+        // Use larger base size (96px) and larger atlas for better quality
         overlayFontReady_ = overlayFont_.loadFromFile(fontPath, 96.0f, 2048);
         if (!overlayFontReady_)
         {
-            std::cerr << "[MissionOverlay] No se pudo cargar la fuente RobotoMono en " << fontPath << std::endl;
+            std::cerr << "[MissionOverlay] Could not load RobotoMono font at " << fontPath << std::endl;
         }
 
-        std::cout << "[MissionOverlay] Inicializado (modo consola)" << std::endl;
+        std::cout << "[MissionOverlay] Initialized (console mode)" << std::endl;
     }
 
     void MissionOverlay::setScreenSize(int screenWidth, int screenHeight)
@@ -65,25 +65,25 @@ namespace ui
         missionName_ = mission.name;
         briefingText_ = mission.briefing;
 
-        // Si no hay briefing, pasar directo a ready
+        // If no briefing, generate default
         if (briefingText_.empty())
         {
-            briefingText_ = "Objetivos:\n";
+            briefingText_ = "Objectives:\n";
             for (size_t i = 0; i < mission.waypoints.size(); ++i)
             {
-                briefingText_ += "- Navegar a " + mission.waypoints[i].name + "\n";
+                briefingText_ += "- Navigate to " + mission.waypoints[i].name + "\n";
             }
         }
 
-        // Mostrar briefing en consola
+        // Show briefing in console
         std::cout << "\n╔════════════════════════════════════════╗\n";
-        std::cout << "║           BRIEFING DE MISION           ║\n";
+        std::cout << "║           MISSION BRIEFING             ║\n";
         std::cout << "╠════════════════════════════════════════╣\n";
         std::cout << "║ " << mission.name << "\n";
         std::cout << "║\n";
         std::cout << "║ " << briefingText_ << "\n";
         std::cout << "╠════════════════════════════════════════╣\n";
-        std::cout << "║  [ ENTER ] Para despegar               ║\n";
+        std::cout << "║  [ ENTER ] To take off                 ║\n";
         std::cout << "╚════════════════════════════════════════╝\n"
                   << std::endl;
     }
@@ -101,19 +101,19 @@ namespace ui
         missionName_ = runtime.getMission().name;
         metricsText_ = formatMetrics(runtime);
 
-        // Mostrar prompt en consola
+        // Show prompt in console
         std::cout << "\n╔════════════════════════════════════════╗\n";
-        std::cout << "║       🎯 MISION COMPLETADA 🎯          ║\n";
+        std::cout << "║       🎯 MISSION COMPLETED 🎯          ║\n";
         std::cout << "╠════════════════════════════════════════╣\n";
         const auto &metrics = runtime.getMetrics();
         std::cout << "║ Waypoints: " << metrics.waypointsCaptured << "/" << metrics.totalWaypoints << "                          ║\n";
-        std::cout << "║ Tiempo: " << static_cast<int>(metrics.totalTimeSeconds) << "s                             ║\n";
-        std::cout << "║ Velocidad: " << static_cast<int>(metrics.averageSpeed) << " kt                      ║\n";
+        std::cout << "║ Time: " << static_cast<int>(metrics.totalTimeSeconds) << "s                             ║\n";
+        std::cout << "║ Speed: " << static_cast<int>(metrics.averageSpeed) << " kt                      ║\n";
         std::cout << "╠════════════════════════════════════════╣\n";
         std::cout << "║                                        ║\n";
-        std::cout << "║  [ SPACE ] Continuar volando           ║\n";
-        std::cout << "║  [ TAB   ] Volver al menu              ║\n";
-        std::cout << "║  [ ESC   ] Salir del simulador         ║\n";
+        std::cout << "║  [ SPACE ] Continue flying             ║\n";
+        std::cout << "║  [ TAB   ] Return to menu              ║\n";
+        std::cout << "║  [ ESC   ] Exit simulator              ║\n";
         std::cout << "║                                        ║\n";
         std::cout << "╚════════════════════════════════════════╝\n"
                   << std::endl;
@@ -161,18 +161,18 @@ namespace ui
             return;
         }
 
-        // Fade-in del overlay
+        // Overlay fade-in
         if (fadeAlpha_ < 1.0f)
         {
-            fadeAlpha_ += dt * 2.0f; // 0.5 segundos para fade-in
+            fadeAlpha_ += dt * 2.0f; // 0.5 seconds for fade-in
             if (fadeAlpha_ > 1.0f)
                 fadeAlpha_ = 1.0f;
         }
 
-        // Blink para prompts
+        // Blink for prompts
         blinkTimer_ += dt;
         if (blinkTimer_ > 6.28f)
-            blinkTimer_ = 0.0f; // 2*PI para ciclo completo
+            blinkTimer_ = 0.0f; // 2*PI for full cycle
     }
 
     bool MissionOverlay::handleInput(GLFWwindow *window)
@@ -184,17 +184,17 @@ namespace ui
 
         bool actionTaken = false;
 
-        // Detectar teclas con debounce
+        // Detect keys with debounce
         bool enterPressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
         bool spacePressed = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
         bool tabPressed = glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS;
         bool upPressed = glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS;
         bool downPressed = glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS;
 
-        // DEBUG: Mostrar estado de teclas
+        // DEBUG: Show key state
         static int debugCounter = 0;
         if (debugCounter++ % 60 == 0)
-        { // Cada 60 frames
+        { // Every 60 frames
             std::cout << "[MissionOverlay] visible=" << visible_
                       << " briefing=" << showingBriefing_
                       << " completion=" << showingCompletion_
@@ -203,7 +203,7 @@ namespace ui
         }
 
         // ========================================================================
-        // BRIEFING: ENTER para comenzar
+        // BRIEFING: ENTER to start
         // ========================================================================
         if (showingBriefing_)
         {
@@ -211,37 +211,37 @@ namespace ui
             {
                 readyToFly_ = true;
                 actionTaken = true;
-                std::cout << "[MissionOverlay] Briefing: ENTER presionado - Listo para volar" << std::endl;
+                std::cout << "[MissionOverlay] Briefing: ENTER pressed - Ready to fly" << std::endl;
             }
         }
 
         // ========================================================================
-        // COMPLETION: Solo SPACE (vuelo libre) y TAB (menú)
+        // COMPLETION: Only SPACE (free flight) and TAB (menu)
         // ========================================================================
         if (showingCompletion_)
         {
-            std::cout << "[MissionOverlay DEBUG] En modo completion, detectando teclas..." << std::endl;
+            std::cout << "[MissionOverlay DEBUG] In completion mode, detecting keys..." << std::endl;
 
-            // SPACE para continuar en vuelo libre
+            // SPACE to continue in free flight
             if (spacePressed && !spaceKeyWasPressed_)
             {
                 completionChoice_ = CompletionChoice::FreeFlight;
                 selectedOption_ = 1;
-                std::cout << "[MissionOverlay] SPACE presionado - Activando vuelo libre" << std::endl;
+                std::cout << "[MissionOverlay] SPACE pressed - Activating free flight" << std::endl;
                 actionTaken = true;
             }
 
-            // TAB para volver al menú
+            // TAB to return to menu
             if (tabPressed && !tabKeyWasPressed_)
             {
                 completionChoice_ = CompletionChoice::ReturnToMenu;
                 selectedOption_ = 0;
-                std::cout << "[MissionOverlay] TAB presionado - Volviendo al menú" << std::endl;
+                std::cout << "[MissionOverlay] TAB pressed - Returning to menu" << std::endl;
                 actionTaken = true;
             }
         }
 
-        // Actualizar estado de teclas
+        // Update key state
         enterKeyWasPressed_ = enterPressed;
         spaceKeyWasPressed_ = spacePressed;
         tabKeyWasPressed_ = tabPressed;
@@ -270,7 +270,7 @@ namespace ui
 
     void MissionOverlay::renderBriefing()
     {
-        // Panel más grande y mejor centrado
+        // Larger and better centered panel
         const float panelW = screenWidth_ * 0.55f;
         const float panelH = screenHeight_ * 0.50f;
         const float panelX = (screenWidth_ - panelW) * 0.5f;
@@ -278,7 +278,7 @@ namespace ui
 
         drawBox(panelX, panelY, panelW, panelH);
 
-        // Título más grande y prominente
+        // Larger and prominent title
         const glm::vec2 titlePos(panelX + panelW * 0.5f, panelY + 55.0f);
         const glm::vec4 titleColor(0.35f, 0.90f, 1.0f, 1.0f);
         drawOverlayText(missionName_.empty() ? "MISSION BRIEFING" : missionName_,
@@ -287,10 +287,10 @@ namespace ui
         auto lines = splitLines(briefingText_);
         if (lines.empty())
         {
-            lines.emplace_back("Sin briefing disponible.");
+            lines.emplace_back("No briefing available.");
         }
 
-        // Textos del cuerpo más grandes y legibles
+        // Larger and readable body texts
         float textY = panelY + 120.0f;
         const glm::vec4 bodyColor(0.85f, 0.92f, 1.0f, 0.95f);
         for (const auto &line : lines)
@@ -305,10 +305,10 @@ namespace ui
             }
         }
 
-        // Prompt más visible y grande
+        // More visible and larger prompt
         float blinkAlpha = 0.6f + 0.4f * std::sin(blinkTimer_ * 3.0f);
         glm::vec4 promptColor(0.4f, 1.0f, 0.6f, blinkAlpha);
-        drawOverlayText("ENTER   LISTO PARA DESPEGAR",
+        drawOverlayText("ENTER   READY FOR TAKEOFF",
                         glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 50.0f),
                         24.0f, promptColor, glm::vec2(0.5f, 0.5f));
     }
@@ -322,13 +322,13 @@ namespace ui
 
         drawBox(panelX, panelY, panelW, panelH);
 
-        // Título más grande
+        // Larger title
         const glm::vec4 titleColor(1.0f, 0.9f, 0.5f, 1.0f);
-        drawOverlayText(missionName_.empty() ? "MISION COMPLETADA" : missionName_,
+        drawOverlayText(missionName_.empty() ? "MISSION COMPLETED" : missionName_,
                         glm::vec2(panelX + panelW * 0.5f, panelY + 55.0f),
                         32.0f, titleColor, glm::vec2(0.5f, 0.5f));
 
-        // Métricas más grandes y legibles
+        // Larger and readable metrics
         auto metricsLines = splitLines(metricsText_);
         float textY = panelY + 110.0f;
         const glm::vec4 metricsColor(0.85f, 0.95f, 1.0f, 0.95f);
@@ -340,7 +340,7 @@ namespace ui
             textY += 28.0f;
         }
 
-        // Opciones más grandes y mejor espaciadas
+        // Larger and better spaced options
         const float optionY = panelY + panelH - 120.0f;
         const float optionSpacing = 45.0f;
         const float blinkAlpha = 0.6f + 0.4f * std::sin(blinkTimer_ * 4.0f);
@@ -354,16 +354,16 @@ namespace ui
         };
 
         const float centerX = panelX + panelW * 0.5f;
-        drawOption("TAB   VOLVER AL MENU",
+        drawOption("TAB   RETURN TO MENU",
                    centerX,
                    optionY,
                    selectedOption_ == 0);
-        drawOption("SPACE   VUELO LIBRE",
+        drawOption("SPACE   FREE FLIGHT",
                    centerX,
                    optionY + optionSpacing,
                    selectedOption_ == 1);
 
-        drawOverlayText("ESC   SALIR DEL SIMULADOR",
+        drawOverlayText("ESC   EXIT SIMULATOR",
                         glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 45.0f),
                         18.0f, glm::vec4(0.65f, 0.75f, 0.9f, 0.85f), glm::vec2(0.5f, 0.5f));
     }
@@ -393,9 +393,9 @@ namespace ui
         std::stringstream ss;
         ss << std::fixed << std::setprecision(0);
         ss << "WAYPOINTS   " << metrics.waypointsCaptured << "/" << metrics.totalWaypoints << "\n";
-        ss << "TIEMPO      " << metrics.totalTimeSeconds << " s\n";
-        ss << "VELOCIDAD   " << metrics.averageSpeed << " kt\n";
-        ss << "ALTITUD MAX " << metrics.maxAltitude << " ft";
+        ss << "TIME        " << metrics.totalTimeSeconds << " s\n";
+        ss << "SPEED       " << metrics.averageSpeed << " kt\n";
+        ss << "MAX ALTITUDE " << metrics.maxAltitude << " ft";
         return ss.str();
     }
 

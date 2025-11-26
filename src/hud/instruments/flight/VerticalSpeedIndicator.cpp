@@ -6,32 +6,32 @@
 namespace hud
 {
     // ============================================================================
-    // CONFIGURACIÓN VISUAL
+    // VISUAL CONFIGURATION
     // ============================================================================
 
-    // Dimensiones de la escala (compacta y profesional)
-    static const float SCALE_WIDTH = 54.0f;       // Ancho de la escala vertical
-    static const float SCALE_HEIGHT = 225.0f;     // Altura total de la escala (50% de tapes)
-    static const float TICK_LENGTH = 8.0f;        // Longitud de las marcas laterales (reducida)
-    static const float MAJOR_TICK_LENGTH = 12.0f; // Marcas principales (0, ±20, ±40, ±60)
+    // Scale dimensions (compact and professional)
+    static const float SCALE_WIDTH = 54.0f;       // Vertical scale width
+    static const float SCALE_HEIGHT = 225.0f;     // Total scale height (50% of tapes)
+    static const float TICK_LENGTH = 8.0f;        // Length of lateral marks (reduced)
+    static const float MAJOR_TICK_LENGTH = 12.0f; // Major marks (0, +/-20, +/-40, +/-60)
 
-    // Indicador triangular (compacto)
+    // Triangular indicator (compact)
     static const float INDICATOR_WIDTH = 10.0f;
     static const float INDICATOR_HEIGHT = 8.0f;
 
-    // Caja de lectura digital (consistente con otros instrumentos)
-    static const float READOUT_BOX_WIDTH = 48.0f; // Más estrecha (números más cortos)
+    // Digital readout box (consistent with other instruments)
+    static const float READOUT_BOX_WIDTH = 48.0f; // Narrower (shorter numbers)
     static const float READOUT_BOX_HEIGHT = 24.0f;
 
     VerticalSpeedIndicator::VerticalSpeedIndicator() : Instrument()
     {
-        // Configuración específica del VSI
+        // VSI specific configuration
         size_ = glm::vec2(SCALE_WIDTH, SCALE_HEIGHT);
-        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
+        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // HUD Green
     }
 
     // ============================================================================
-    // FUNCIÓN PRINCIPAL DE RENDERIZADO
+    // MAIN RENDER FUNCTION
     // ============================================================================
 
     void VerticalSpeedIndicator::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
@@ -41,17 +41,17 @@ namespace hud
 
         float verticalSpeed = flightData.verticalSpeed; // ft/min
 
-        // Clamping para evitar que el indicador salga de la escala
-        // (valores extremos se muestran en el límite)
+        // Clamping to prevent indicator from leaving the scale
+        // (extreme values shown at limit)
         float clampedVS = std::clamp(verticalSpeed, MIN_VSI, MAX_VSI);
 
         drawScale(renderer);
         drawIndicator(renderer, clampedVS);
-        drawDigitalReadout(renderer, verticalSpeed); // Mostrar valor real (no clamped)
+        drawDigitalReadout(renderer, verticalSpeed); // Show real value (not clamped)
     }
 
     // ============================================================================
-    // RENDERIZADO DE LA ESCALA FIJA
+    // FIXED SCALE RENDERING
     // ============================================================================
 
     void VerticalSpeedIndicator::drawScale(gfx::Renderer2D &renderer)
@@ -59,40 +59,40 @@ namespace hud
         float centerX = position_.x + size_.x * 0.5f;
         float centerY = position_.y + size_.y * 0.5f;
 
-        // Línea vertical de la escala (backbone)
-        float lineX = centerX + 5.0f; // Offset a la derecha del centro
+        // Scale vertical line (backbone)
+        float lineX = centerX + 5.0f; // Offset to right of center
         renderer.drawLine(
             glm::vec2(lineX, position_.y),
             glm::vec2(lineX, position_.y + size_.y),
             color_, 1.0f);
 
-        // Dibujar marcas de la escala
+        // Draw scale marks
         int numMarks = static_cast<int>((MAX_VSI - MIN_VSI) / MARK_INTERVAL) + 1;
 
         for (int i = 0; i < numMarks; ++i)
         {
-            float vsi = MIN_VSI + i * MARK_INTERVAL; // En ft/min
+            float vsi = MIN_VSI + i * MARK_INTERVAL; // In ft/min
 
-            // Calcular posición Y de la marca (invertida: +arriba, -abajo)
-            float normalizedVSI = vsi / MAX_VSI; // -1.0 a +1.0
+            // Calculate mark Y position (inverted: +up, -down)
+            float normalizedVSI = vsi / MAX_VSI; // -1.0 to +1.0
             float markY = centerY - normalizedVSI * (SCALE_HEIGHT * 0.5f);
 
-            // Determinar si es marca principal (cada 2000 ft/min = 20 en display)
+            // Determine if major mark (every 2000 ft/min = 20 on display)
             bool isMajorMark = (std::fmod(std::abs(vsi), 2000.0f) < 0.1f);
 
             float tickLen = isMajorMark ? MAJOR_TICK_LENGTH : TICK_LENGTH;
 
-            // Dibujar tick horizontal
+            // Draw horizontal tick
             renderer.drawLine(
                 glm::vec2(lineX - tickLen, markY),
                 glm::vec2(lineX, markY),
                 color_, isMajorMark ? 1.25f : 0.8f);
 
-            // Dibujar números solo en marcas principales
+            // Draw numbers only on major marks
             if (isMajorMark)
             {
-                // Formatear número en formato estándar militar: ft/min / 100
-                // Ejemplo: 4000 ft/min → "+40"
+                // Format number in military standard: ft/min / 100
+                // Example: 4000 ft/min -> "+40"
                 int displayValue = static_cast<int>(vsi / DISPLAY_SCALE);
 
                 std::string label;
@@ -102,11 +102,11 @@ namespace hud
                 }
                 else
                 {
-                    // Agregar signo explícito
+                    // Add explicit sign
                     label = (displayValue > 0 ? "+" : "") + std::to_string(displayValue);
                 }
 
-                // Posición del texto (a la izquierda de los ticks)
+                // Text position (left of ticks)
                 float textX = lineX - tickLen - 18.0f;
                 glm::vec2 textPos = glm::vec2(textX, markY);
                 gfx::TextRenderer::drawString(renderer, label, textPos,
@@ -114,7 +114,7 @@ namespace hud
             }
         }
 
-        // Línea de referencia en 0 (más gruesa y más larga)
+        // Reference line at 0 (thicker and longer)
         renderer.drawLine(
             glm::vec2(lineX - (MAJOR_TICK_LENGTH + 12.0f), centerY),
             glm::vec2(lineX + 6.0f, centerY),
@@ -122,7 +122,7 @@ namespace hud
     }
 
     // ============================================================================
-    // INDICADOR TRIANGULAR MÓVIL
+    // MOVING TRIANGULAR INDICATOR
     // ============================================================================
 
     void VerticalSpeedIndicator::drawIndicator(gfx::Renderer2D &renderer, float verticalSpeed)
@@ -130,32 +130,32 @@ namespace hud
         float centerX = position_.x + size_.x * 0.5f;
         float centerY = position_.y + size_.y * 0.5f;
 
-        // Calcular posición Y del indicador basado en VSI
-        float normalizedVSI = verticalSpeed / MAX_VSI; // -1.0 a +1.0
+        // Calculate indicator Y position based on VSI
+        float normalizedVSI = verticalSpeed / MAX_VSI; // -1.0 to +1.0
         float indicatorY = centerY - normalizedVSI * (SCALE_HEIGHT * 0.5f);
 
-        // Triángulo apuntando a la escala (punta a la derecha)
+        // Triangle pointing to scale (tip to right)
         float lineX = centerX + 5.0f;
         float triLeft = lineX + 2.0f;
         float triRight = triLeft + INDICATOR_WIDTH;
         float triTop = indicatorY - INDICATOR_HEIGHT * 0.5f;
         float triBot = indicatorY + INDICATOR_HEIGHT * 0.5f;
 
-        // Dibujar triángulo relleno
+        // Draw filled triangle
         renderer.drawTriangle(
             glm::vec2(triLeft, triTop),
             glm::vec2(triLeft, triBot),
             glm::vec2(triRight, indicatorY),
             color_);
 
-        // Contorno del triángulo (más fino)
+        // Triangle outline (thinner)
         renderer.drawLine(glm::vec2(triLeft, triTop), glm::vec2(triRight, indicatorY), color_, 1.2f);
         renderer.drawLine(glm::vec2(triRight, indicatorY), glm::vec2(triLeft, triBot), color_, 1.2f);
         renderer.drawLine(glm::vec2(triLeft, triBot), glm::vec2(triLeft, triTop), color_, 1.2f);
     }
 
     // ============================================================================
-    // LECTURA DIGITAL (FORMATO ESTÁNDAR MILITAR)
+    // DIGITAL READOUT (MILITARY STANDARD FORMAT)
     // ============================================================================
 
     void VerticalSpeedIndicator::drawDigitalReadout(gfx::Renderer2D &renderer, float verticalSpeed)
@@ -163,28 +163,28 @@ namespace hud
         float centerX = position_.x + size_.x * 0.5f;
         float centerY = position_.y + size_.y * 0.5f;
 
-        // Alinear la caja digital con la línea de 0 y a la IZQUIERDA de la escala
-        float lineX = centerX + 5.0f;                  // Debe coincidir con drawScale
-        float boxX = lineX - 6.0f - READOUT_BOX_WIDTH; // Separación mínima de la escala
+        // Align digital box with 0 line and LEFT of scale
+        float lineX = centerX + 5.0f;                  // Must match drawScale
+        float boxX = lineX - 6.0f - READOUT_BOX_WIDTH; // Minimum separation from scale
         float boxY = centerY - READOUT_BOX_HEIGHT * 0.5f;
 
-        // Fondo semi-transparente para legibilidad
+        // Semi-transparent background for readability
         glm::vec4 boxBgColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.7f);
         renderer.drawRect(
             glm::vec2(boxX, boxY),
             glm::vec2(READOUT_BOX_WIDTH, READOUT_BOX_HEIGHT),
             boxBgColor, true);
 
-        // Contorno de la caja
+        // Box outline
         renderer.drawRect(
             glm::vec2(boxX, boxY),
             glm::vec2(READOUT_BOX_WIDTH, READOUT_BOX_HEIGHT),
             color_, false);
 
-        // FORMATO ESTÁNDAR MILITAR: ft/min / 100
-        // Ejemplo: 4000 ft/min → "+40"
-        // Ejemplo: -1200 ft/min → "-12"
-        // Ejemplo: +500 ft/min → "+5"
+        // MILITARY STANDARD FORMAT: ft/min / 100
+        // Example: 4000 ft/min -> "+40"
+        // Example: -1200 ft/min -> "-12"
+        // Example: +500 ft/min -> "+5"
         int displayValue = static_cast<int>(std::round(verticalSpeed / DISPLAY_SCALE));
 
         std::string vsiText;
@@ -194,11 +194,11 @@ namespace hud
         }
         else
         {
-            // Signo explícito + valor absoluto (sin decimales, formato entero compacto)
+            // Explicit sign + absolute value (no decimals, compact integer format)
             vsiText = (displayValue > 0 ? "+" : "") + std::to_string(displayValue);
         }
 
-        // Dibujar número centrado en la caja (consistente con otros instrumentos)
+        // Draw centered number in box (consistent with other instruments)
         glm::vec2 textPos = glm::vec2(boxX + READOUT_BOX_WIDTH * 0.5f, centerY);
         gfx::TextRenderer::drawString(renderer, vsiText, textPos,
                                       glm::vec2(6.0f, 10.0f), color_, 8.0f);

@@ -1,6 +1,6 @@
 /**
  * @file MissionMenu.cpp
- * @brief Implementación del menú de misiones
+ * @brief Implementation of the mission menu.
  */
 
 #include "MissionMenu.h"
@@ -37,11 +37,11 @@ namespace ui
         renderer2D_.init(screenWidth, screenHeight);
 
         const std::string fontPath = "assets/fonts/RobotoMono-Regular.ttf";
-        // Usar tamaño base mayor (96px) y atlas más grande para mejor calidad
+        // Use larger base size (96px) and larger atlas for better quality
         menuFontReady_ = menuFont_.loadFromFile(fontPath, 96.0f, 2048);
         if (!menuFontReady_)
         {
-            std::cerr << "[MissionMenu] No se pudo cargar la fuente RobotoMono en " << fontPath << std::endl;
+            std::cerr << "[MissionMenu] Could not load RobotoMono font at " << fontPath << std::endl;
         }
 
         std::cout << "✓ MissionMenu initialized" << std::endl;
@@ -59,7 +59,7 @@ namespace ui
             return;
         }
 
-        // Navegación arriba/abajo
+        // Navigation up/down
         bool upKeyCurrentlyPressed = (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS ||
                                       glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS);
         bool downKeyCurrentlyPressed = (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS ||
@@ -93,7 +93,7 @@ namespace ui
             downKeyPressed_ = false;
         }
 
-        // Selección (Enter o Espacio)
+        // Selection (Enter or Space)
         bool enterCurrentlyPressed = (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS ||
                                       glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS);
 
@@ -102,14 +102,14 @@ namespace ui
             result_.missionSelected = true;
             result_.selectedMissionIndex = selectedIndex_;
             enterKeyPressed_ = true;
-            std::cout << "Misión seleccionada: " << selectedIndex_ << std::endl;
+            std::cout << "Mission selected: " << selectedIndex_ << std::endl;
         }
         else if (!enterCurrentlyPressed)
         {
             enterKeyPressed_ = false;
         }
 
-        // Salir (ESC)
+        // Exit (ESC)
         bool escCurrentlyPressed = (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS);
 
         if (escCurrentlyPressed && !escKeyPressed_)
@@ -138,16 +138,16 @@ namespace ui
 
         renderer2D_.end();
         glDisable(GL_BLEND);
-        // flush() ya es llamado por end() internamente
+        // flush() is already called by end() internally
     }
 
     void MissionMenu::renderBackground()
     {
-        // Fondo degradado oscuro
+        // Dark gradient background
         glm::vec4 bgColor(0.05f, 0.08f, 0.12f, 1.0f);
         renderer2D_.drawRect(glm::vec2(0, 0), glm::vec2(screenWidth_, screenHeight_), bgColor, true);
 
-        // Líneas decorativas
+        // Decorative lines
         glm::vec4 accentColor(0.2f, 0.5f, 0.8f, 0.3f);
         renderer2D_.drawLine(glm::vec2(0, screenHeight_ * 0.15f),
                              glm::vec2(screenWidth_, screenHeight_ * 0.15f),
@@ -159,18 +159,18 @@ namespace ui
 
     void MissionMenu::renderTitle()
     {
-        // Barra superior con título
+        // Top bar with title
         float barHeight = screenHeight_ * 0.12f;
         renderer2D_.drawRect(glm::vec2(0, 0),
                              glm::vec2(screenWidth_, barHeight),
                              glm::vec4(0.05f, 0.1f, 0.15f, 0.95f), true);
 
-        // Línea de acento
+        // Accent line
         renderer2D_.drawRect(glm::vec2(0, barHeight - 3),
                              glm::vec2(screenWidth_, 3),
                              glm::vec4(0.2f, 0.6f, 1.0f, 1.0f), true);
 
-        // Título simplificado - solo texto clave
+        // Simplified title - key text only
         glm::vec2 titlePos(screenWidth_ * 0.5f, barHeight * 0.38f);
         drawMenuText("F16 FLIGHT SIM", titlePos, 34.0f,
                      glm::vec4(0.3f, 0.8f, 1.0f, 1.0f), glm::vec2(0.5f, 0.5f));
@@ -183,14 +183,14 @@ namespace ui
             return;
         }
 
-        // Panel de lista de misiones - más grande y centrado
+        // Mission list panel - larger and centered
         float listX = screenWidth_ * 0.15f;
         float listY = screenHeight_ * 0.18f;
         float listWidth = screenWidth_ * 0.70f;
         float itemHeight = 90.0f;
         float panelHeight = screenHeight_ * 0.65f;
 
-        // Fondo del panel con borde
+        // Panel background with border
         renderer2D_.drawRect(glm::vec2(listX, listY),
                              glm::vec2(listWidth, panelHeight),
                              glm::vec4(0.06f, 0.09f, 0.14f, 0.95f), true);
@@ -198,7 +198,7 @@ namespace ui
                              glm::vec2(listWidth, panelHeight),
                              glm::vec4(0.15f, 0.4f, 0.7f, 0.5f), false);
 
-        // Renderizar cada misión
+        // Render each mission
         float itemY = listY + 15.0f;
         size_t missionCount = registry_->getMissionCount();
 
@@ -210,22 +210,22 @@ namespace ui
 
             bool isSelected = (static_cast<int>(i) == selectedIndex_);
 
-            // Contenedor del item
+            // Item container
             float itemX = listX + 15.0f;
             float itemW = listWidth - 30.0f;
 
-            // Fondo del item con gradiente visual
+            // Item background with visual gradient
             if (isSelected)
             {
-                // Item seleccionado - destacado
+                // Selected item - highlighted
                 renderer2D_.drawRect(glm::vec2(itemX, itemY),
                                      glm::vec2(itemW, itemHeight - 5),
                                      glm::vec4(0.15f, 0.45f, 0.75f, 0.9f), true);
-                // Borde brillante
+                // Bright border
                 renderer2D_.drawRect(glm::vec2(itemX, itemY),
                                      glm::vec2(itemW, itemHeight - 5),
                                      glm::vec4(0.3f, 0.8f, 1.0f, 1.0f), false);
-                // Barra lateral de selección
+                // Selection sidebar
                 renderer2D_.drawRect(glm::vec2(itemX, itemY),
                                      glm::vec2(6, itemHeight - 5),
                                      glm::vec4(0.2f, 0.9f, 0.4f, 1.0f), true);
@@ -237,17 +237,17 @@ namespace ui
                                      glm::vec4(0.08f, 0.12f, 0.18f, 0.7f), true);
             }
 
-            // Número de misión (grande y visible)
+            // Mission number (large and visible)
             std::string numStr = std::to_string(i + 1);
             glm::vec4 numColor = isSelected ? glm::vec4(1.0f, 1.0f, 0.3f, 1.0f) : glm::vec4(0.4f, 0.6f, 0.8f, 1.0f);
             drawMenuText(numStr,
                          glm::vec2(itemX + 32.0f, itemY + (itemHeight - 5) * 0.45f),
                          30.0f, numColor, glm::vec2(0.0f, 0.5f));
 
-            // Nombre de la misión (más legible)
+            // Mission name (more readable)
             glm::vec4 textColor = isSelected ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : glm::vec4(0.75f, 0.8f, 0.9f, 1.0f);
 
-            // Simplificar nombre si es muy largo
+            // Truncate name if too long
             std::string displayName = mission->name;
             if (displayName.length() > 25)
             {
@@ -258,7 +258,7 @@ namespace ui
                          glm::vec2(itemX + 80.0f, itemY + 24.0f),
                          20.0f, textColor, glm::vec2(0.0f, 0.5f));
 
-            // Indicadores visuales de dificultad (estrellas como barras)
+            // Visual difficulty indicators (stars as bars)
             float starX = itemX + 80;
             float starY = itemY + 48;
             for (int d = 0; d < 5; ++d)
@@ -282,7 +282,7 @@ namespace ui
 
             itemY += itemHeight;
 
-            // Limitar cantidad visible
+            // Limit visible amount
             if (itemY > listY + panelHeight - 20)
                 break;
         }
@@ -290,7 +290,7 @@ namespace ui
 
     void MissionMenu::renderMissionDetails()
     {
-        // Panel de detalles movido abajo como banner
+        // Details panel moved down as banner
         if (!registry_ || selectedIndex_ < 0 ||
             selectedIndex_ >= static_cast<int>(registry_->getMissionCount()))
         {
@@ -301,7 +301,7 @@ namespace ui
         if (!mission)
             return;
 
-        // Banner inferior con información de la misión seleccionada
+        // Bottom banner with selected mission info
         float bannerHeight = 50.0f;
         float bannerY = screenHeight_ * 0.85f;
 
@@ -309,12 +309,12 @@ namespace ui
                              glm::vec2(screenWidth_, bannerHeight),
                              glm::vec4(0.08f, 0.15f, 0.22f, 0.95f), true);
 
-        // Línea superior del banner
+        // Banner top line
         renderer2D_.drawRect(glm::vec2(0, bannerY),
                              glm::vec2(screenWidth_, 2),
                              glm::vec4(0.2f, 0.6f, 1.0f, 0.8f), true);
 
-        // Botón ENTER - destacado
+        // ENTER button - highlighted
         float btnW = 180.0f;
         float btnH = 35.0f;
         float btnX = screenWidth_ - btnW - 30;
@@ -334,17 +334,17 @@ namespace ui
 
     void MissionMenu::renderInstructions()
     {
-        // Instrucciones en la parte inferior
+        // Instructions at the bottom
         float instrY = screenHeight_ * 0.935f;
 
-        // Fondo semi-transparente
+        // Semi-transparent background
         renderer2D_.drawRect(glm::vec2(0, instrY - 6.0f),
                              glm::vec2(screenWidth_, 60.0f),
                              glm::vec4(0.03f, 0.05f, 0.08f, 0.92f), true);
 
-        // Instrucciones simplificadas con indicadores visuales
+        // Simplified instructions with visual indicators
         float xPos = screenWidth_ * 0.5f;
-        drawMenuText("W/S NAVEGAR    ENTER INICIAR    ESC SALIR",
+        drawMenuText("W/S NAVIGATE    ENTER START    ESC EXIT",
                      glm::vec2(xPos, instrY + 12.0f),
                      18.0f, glm::vec4(0.7f, 0.8f, 0.95f, 1.0f), glm::vec2(0.5f, 0.5f));
 

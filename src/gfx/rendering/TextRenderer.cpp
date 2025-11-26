@@ -5,52 +5,52 @@ namespace gfx
 {
 
     ////////////////////////////////////////////////////////////////////////////
-    //  API pública
+    //  Public API
     ////////////////////////////////////////////////////////////////////////////
 
-    // Ejemplo rápido:
+    // Quick example:
     // gfx::TextRenderer::drawString(renderer, "123", {200, 100}, {8, 12}, {1,1,1,1}, 10);
-    // Dibuja "123" centrado en (200,100) con caracteres de 8x12 px, avance horizontal 10.
+    // Draws "123" centered at (200,100) with 8x12 px characters, horizontal advance 10.
     void TextRenderer::drawString(Renderer2D &renderer, const std::string &text, const glm::vec2 &position, const glm::vec2 &charSize, const glm::vec4 &color, float spacing)
     {
-        // Centrar el string completo horizontalmente (alineación midpoint).
+        // Center the full string horizontally (midpoint alignment).
         float totalWidth = text.length() * spacing - (spacing - charSize.x);
         float startX = position.x - totalWidth * 0.5f;
 
-        // Dibujar cada dígito con spacing fijo (tabular)
+        // Draw each digit with fixed spacing (tabular)
         for (size_t i = 0; i < text.length(); ++i)
         {
             char character = text[i];
 
-            // Posición del dígito con pixel snapping para evitar blur en HUD.
+            // Digit position with pixel snapping to avoid blur on HUD.
             float charX = floor(startX + i * spacing) + 0.5f;
             float charY = floor(position.y - charSize.y * 0.5f) + 0.5f;
             glm::vec2 charPos = glm::vec2(charX, charY);
 
-            // Renderizar 7 segmentos según la tabla predefinida.
+            // Render 7 segments according to the predefined table.
             drawChar7Segment(renderer, character, charPos, charSize, color);
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Helper interno: 7 segmentos
+    //  Internal Helper: 7 segments
     ////////////////////////////////////////////////////////////////////////////
 
     void TextRenderer::drawChar7Segment(Renderer2D &renderer, char character, const glm::vec2 &pos, const glm::vec2 &size, const glm::vec4 &color)
     {
         const float w = size.x;
         const float h = size.y;
-        const float thickness = 1.5f; // Grosor del segmento
+        const float thickness = 1.5f; // Segment thickness
         const float halfH = h * 0.5f;
 
-        bool s[7] = {false}; // Segmentos activos: a, b, c, d, e, f, g
+        bool s[7] = {false}; // Active segments: a, b, c, d, e, f, g
 
-        // Convertir a mayúsculas para simplificar
+        // Convert to uppercase to simplify
         char c = toupper(character);
 
         switch (c)
         {
-        // Números
+        // Numbers
         case '0':
             s[0] = s[1] = s[2] = s[3] = s[4] = s[5] = true;
             break;
@@ -82,19 +82,19 @@ namespace gfx
             s[0] = s[1] = s[2] = s[3] = s[5] = s[6] = true;
             break;
 
-        // Letras (representaciones comunes en 7 segmentos)
+        // Letters (common 7-segment representations)
         case 'A':
             s[0] = s[1] = s[2] = s[4] = s[5] = s[6] = true;
             break; // A
         case 'B':
             s[2] = s[3] = s[4] = s[5] = s[6] = true;
-            break; // b (minúscula)
+            break; // b (lowercase)
         case 'C':
             s[0] = s[3] = s[4] = s[5] = true;
             break; // C
         case 'D':
             s[1] = s[2] = s[3] = s[4] = s[6] = true;
-            break; // d (minúscula)
+            break; // d (lowercase)
         case 'E':
             s[0] = s[3] = s[4] = s[5] = s[6] = true;
             break; // E
@@ -121,22 +121,22 @@ namespace gfx
             break; // N
         case 'O':
             s[0] = s[1] = s[2] = s[3] = s[4] = s[5] = true;
-            break; // O (como 0)
+            break; // O (same as 0)
         case 'P':
             s[0] = s[1] = s[4] = s[5] = s[6] = true;
             break; // P
         case 'Q':
             s[0] = s[1] = s[2] = s[5] = s[6] = true;
-            break; // q (minúscula)
+            break; // q (lowercase)
         case 'R':
             s[4] = s[6] = true;
-            break; // r (minúscula)
+            break; // r (lowercase)
         case 'S':
             s[0] = s[2] = s[3] = s[5] = s[6] = true;
-            break; // S (como 5)
+            break; // S (same as 5)
         case 'T':
             s[3] = s[4] = s[5] = s[6] = true;
-            break; // t (minúscula)
+            break; // t (lowercase)
         case 'U':
             s[1] = s[2] = s[3] = s[4] = s[5] = true;
             break; // U
@@ -144,20 +144,20 @@ namespace gfx
             s[1] = s[2] = s[3] = s[5] = s[6] = true;
             break; // Y
 
-        // Símbolos
+        // Symbols
         case '-':
             s[6] = true;
-            break; // Guión
+            break; // Dash
         case '.':
             renderer.drawRect(pos + glm::vec2(w * 0.5f - thickness * 0.5f, h - thickness), glm::vec2(thickness, thickness), color, true);
-            return; // Punto
+            return; // Dot
         case ' ':
-            break; // Espacio
+            break; // Space
         default:
-            break; // Caracter no soportado
+            break; // Unsupported character
         }
 
-        // Dibujar segmentos activos
+        // Draw active segments
         if (s[0])
             renderer.drawRect(pos + glm::vec2(thickness, 0), glm::vec2(w - 2 * thickness, thickness), color, true); // a
         if (s[1])

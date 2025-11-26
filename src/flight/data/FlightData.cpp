@@ -75,6 +75,19 @@ namespace flight
     }
 
     // ============================== Implementación ==============================
+
+    /**
+     * @brief Updates the flight data based on the camera's state.
+     *
+     * This function derives flight parameters such as pitch, roll, heading, airspeed,
+     * and altitude from the camera's position and orientation vectors. It applies
+     * smoothing to avoid jitter and ensures robust handling of edge cases (e.g., gimbal lock).
+     *
+     * @param frontIn Raw camera forward vector.
+     * @param upIn Raw camera up vector.
+     * @param pos Camera position in world space.
+     * @param deltaTime Time step for smoothing calculations.
+     */
     void FlightData::updateFromCamera(const glm::vec3 &frontIn,
                                       const glm::vec3 &upIn,
                                       const glm::vec3 &pos,

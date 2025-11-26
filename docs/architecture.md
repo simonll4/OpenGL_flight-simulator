@@ -4,7 +4,7 @@ Este documento resume cómo se organiza el código y qué responsabilidades tien
 
 ## 1. Núcleo (`src/core`)
 - **`core::Application`**
-  - Inicializa GLFW/GLAD, ventana y recursos OpenGL (clipmap, skybox, shaders, modelo).
+  - Inicializa GLFW/GLAD, ventana y recursos OpenGL (terreno plano, skybox, shaders, modelo).
   - Mantiene un `core::AppContext` con punteros a todos los subsistemas.
   - Gestiona un mapa de estados (`states::IModeState`) y delega `handleInput/update/render`.
   - Controla el ciclo principal (timing, resize, swap buffers, transición de estados y shutdown).
@@ -30,7 +30,7 @@ Este documento resume cómo se organiza el código y qué responsabilidades tien
   - Renderiza cilindros 3D con `gfx::WaypointRenderer`.
 
 ## 4. Renderizado (`src/gfx`)
-- **Terreno**: `ClipmapTerrain` extrae heightmaps/texturas y dibuja niveles escalados con primitive restart.
+- **Terreno**: `TerrainPlane` dibuja un plano texturizado (grid 3x3 alrededor de la cámara) repetido con `GL_REPEAT` para no dejar bordes visibles, sin heightmap/LOD.
 - **Skybox**: `SkyboxRenderer + TextureCube`.
 - **Modelo**: `gfx::Shader + gfx::Model` para el F-16 (Assimp + PBR básico).
 - **Texto**:

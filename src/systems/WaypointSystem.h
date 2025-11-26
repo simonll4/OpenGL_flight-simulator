@@ -1,3 +1,8 @@
+/**
+ * @file WaypointSystem.h
+ * @brief Waypoint management and navigation system.
+ */
+
 #pragma once
 
 #include <memory>

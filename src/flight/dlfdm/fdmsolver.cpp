@@ -22,6 +22,13 @@ namespace dlfdm
         aircraft_state_.body_omega = glm::vec3(0.0f);
     }
 
+    /**
+     * @brief Advances the simulation by one time step.
+     *
+     * Performs the Runge-Kutta 4 (RK4) integration to update the aircraft state.
+     *
+     * @param controls Current control inputs.
+     */
     void FDMSolver::update(const ControlInputs &controls)
     {
         // Clamp controls

@@ -1,6 +1,6 @@
 /**
  * @file MissionMenu.h
- * @brief Pantalla de selección de misiones
+ * @brief Mission selection screen.
  */
 
 #pragma once
@@ -21,7 +21,7 @@ namespace ui
 {
 
     /**
-     * @brief Resultado de la selección del usuario en el menú
+     * @brief Result of user selection in the menu.
      */
     struct MenuResult
     {
@@ -31,10 +31,10 @@ namespace ui
     };
 
     /**
-     * @brief Menú de bienvenida y selección de misiones
+     * @brief Welcome menu and mission selection.
      *
-     * Muestra una lista de misiones disponibles y permite al usuario
-     * seleccionar una para iniciar o salir del simulador.
+     * Displays a list of available missions and allows the user to
+     * select one to start or exit the simulator.
      */
     class MissionMenu
     {
@@ -43,47 +43,47 @@ namespace ui
         ~MissionMenu() = default;
 
         /**
-         * @brief Inicializar el menú
-         * @param registry Registro de misiones disponibles
-         * @param screenWidth Ancho de pantalla
-         * @param screenHeight Alto de pantalla
+         * @brief Initialize the menu.
+         * @param registry Registry of available missions.
+         * @param screenWidth Screen width.
+         * @param screenHeight Screen height.
          */
         void init(mission::MissionRegistry *registry, int screenWidth, int screenHeight);
 
         /**
-         * @brief Actualizar estado del menú (input handling)
-         * @param window Ventana GLFW para capturar input
-         * @param deltaTime Tiempo transcurrido desde el último frame
+         * @brief Update menu state (input handling).
+         * @param window GLFW window for capturing input.
+         * @param deltaTime Time elapsed since last frame.
          */
         void update(GLFWwindow *window, float deltaTime);
 
         /**
-         * @brief Renderizar el menú
+         * @brief Render the menu.
          */
         void render();
 
         /**
-         * @brief Obtener resultado de la selección
+         * @brief Get selection result.
          */
         MenuResult getResult() const;
 
         /**
-         * @brief Resetear el menú para volver a mostrarlo
+         * @brief Reset the menu to show it again.
          */
         void reset();
 
         /**
-         * @brief Actualizar tamaño de pantalla
+         * @brief Update screen size.
          */
         void setScreenSize(int width, int height);
 
         /**
-         * @brief Preseleccionar una misión por índice
+         * @brief Preselect a mission by index.
          */
         void preselectMission(int index);
 
         /**
-         * @brief Acceso al renderer 2D para reutilizarlo en otras vistas
+         * @brief Access to 2D renderer for reuse in other views.
          */
         gfx::Renderer2D *getRenderer() { return &renderer2D_; }
 
@@ -96,7 +96,7 @@ namespace ui
         int selectedIndex_;
         MenuResult result_;
 
-        // Estado de teclas para evitar repetición
+        // Key state to avoid repetition
         bool enterKeyPressed_;
         bool escKeyPressed_;
         bool upKeyPressed_;

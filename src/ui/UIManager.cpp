@@ -14,20 +14,20 @@ namespace ui
         screenWidth_ = width;
         screenHeight_ = height;
 
-        // HUD principal: crea layout por defecto y lo inicializa con la resolución actual
+        // Main HUD: create default layout and initialize with current resolution
         hud_ = std::make_unique<hud::FlightHUD>();
         hud_->init(width, height);
         hud_->setLayout("classic");
 
-        // Menú se alimenta del registro de misiones para listar escenarios disponibles
+        // Menu feeds from mission registry to list available scenarios
         menu_ = std::make_unique<ui::MissionMenu>();
         menu_->init(registry_, width, height);
 
-        // El planner reutiliza el renderer del menú para compartir recursos (fuentes, texturas)
+        // Planner reuses menu renderer to share resources (fonts, textures)
         planner_ = std::make_unique<ui::MissionPlanner>();
         planner_->init(width, height, menu_->getRenderer());
 
-        // Overlay se encarga de briefing/completion sobre la vista 3D
+        // Overlay handles briefing/completion over 3D view
         overlay_ = std::make_unique<ui::MissionOverlay>();
         overlay_->init(width, height);
 
@@ -36,17 +36,17 @@ namespace ui
 
     void UIManager::resize(int width, int height)
     {
-        // Guardar resolución actual para futuros cálculos de layout
+        // Save current resolution for future layout calculations
         screenWidth_ = width;
         screenHeight_ = height;
         if (hud_)
         {
-            // FlightHUD recalcula grillas y posiciones relativas
+            // FlightHUD recalculates grids and relative positions
             hud_->setScreenSize(width, height);
         }
         if (menu_)
         {
-            // Los menús dependen de la resolución para su malla de navegación
+            // Menus depend on resolution for navigation mesh
             menu_->setScreenSize(width, height);
         }
         if (planner_)
@@ -61,7 +61,7 @@ namespace ui
 
     void UIManager::updateMenu(GLFWwindow *window, float dt)
     {
-        // Reenvía entrada y delta de tiempo al menú de selección
+        // Forward input and time delta to selection menu
         if (menu_)
         {
             menu_->update(window, dt);
@@ -70,7 +70,7 @@ namespace ui
 
     void UIManager::renderMenu()
     {
-        // El menú usa su propio Renderer2D, sólo hay que detonar el draw call
+        // Menu uses its own Renderer2D, just need to trigger draw call
         if (menu_)
         {
             menu_->render();
@@ -79,7 +79,7 @@ namespace ui
 
     ui::MenuResult UIManager::getMenuResult() const
     {
-        // Devuelve el resultado del último frame (start, exit, etc.)
+        // Returns result of last frame (start, exit, etc.)
         if (menu_)
         {
             return menu_->getResult();
@@ -89,7 +89,7 @@ namespace ui
 
     void UIManager::resetMenu()
     {
-        // Limpia selecciones y estados transitorios del menú
+        // Clears selections and transient menu states
         if (menu_)
         {
             menu_->reset();
@@ -98,7 +98,7 @@ namespace ui
 
     void UIManager::preselectMission(int index)
     {
-        // Permite marcar una misión cuando venimos del planner u otro flujo
+        // Allows marking a mission when coming from planner or other flow
         if (menu_)
         {
             menu_->preselectMission(index);
@@ -107,7 +107,7 @@ namespace ui
 
     void UIManager::updatePlanner(GLFWwindow *window, float dt)
     {
-        // El planner responde a input para manipular waypoints
+        // Planner responds to input for waypoint manipulation
         if (planner_)
         {
             planner_->update(window, dt);
@@ -116,7 +116,7 @@ namespace ui
 
     void UIManager::renderPlanner()
     {
-        // Dibuja mapa, waypoints y UI adicional
+        // Draws map, waypoints, and additional UI
         if (planner_)
         {
             planner_->render();
@@ -125,7 +125,7 @@ namespace ui
 
     ui::PlannerResult UIManager::getPlannerResult() const
     {
-        // Reporta la acción del usuario (aceptar plan, regresar, etc.)
+        // Reports user action (accept plan, return, etc.)
         if (planner_)
         {
             return planner_->getResult();
@@ -135,7 +135,7 @@ namespace ui
 
     void UIManager::resetPlanner()
     {
-        // Borra ruta y estados temporales al abandonar el planner
+        // Clears route and temporary states when leaving planner
         if (planner_)
         {
             planner_->reset();
@@ -144,7 +144,7 @@ namespace ui
 
     void UIManager::loadPlannerMission(const mission::MissionDefinition &mission)
     {
-        // Precarga una misión para editarla dentro del planner
+        // Preloads a mission for editing within planner
         if (planner_)
         {
             planner_->loadMission(mission);
@@ -153,7 +153,7 @@ namespace ui
 
     mission::MissionDefinition UIManager::getPlannerMission() const
     {
-        // Devuelve la misión editada actualmente (copia)
+        // Returns currently edited mission (copy)
         if (planner_)
         {
             return planner_->getMission();
@@ -163,7 +163,7 @@ namespace ui
 
     void UIManager::updateOverlay(float dt)
     {
-        // Overlay sólo necesita delta de tiempo para sus animaciones
+        // Overlay only needs time delta for animations
         if (overlay_)
         {
             overlay_->update(dt);
@@ -172,7 +172,7 @@ namespace ui
 
     bool UIManager::handleOverlayInput(GLFWwindow *window)
     {
-        // Maneja clicks/teclas cuando el overlay está visible
+        // Handles clicks/keys when overlay is visible
         if (overlay_)
         {
             return overlay_->handleInput(window);
@@ -201,7 +201,7 @@ namespace ui
 
     void UIManager::showBriefing(const mission::MissionDefinition &mission)
     {
-        // Muestra briefing previo al vuelo con datos de la misión seleccionada
+        // Shows pre-flight briefing with selected mission data
         if (overlay_)
         {
             overlay_->showBriefing(mission);
@@ -210,7 +210,7 @@ namespace ui
 
     void UIManager::showCompletionPrompt(const mission::MissionRuntime &runtime)
     {
-        // Presenta resultados del vuelo actual y opciones de continuación
+        // Presents current flight results and continuation options
         if (overlay_)
         {
             overlay_->showCompletionPrompt(runtime);
@@ -219,7 +219,7 @@ namespace ui
 
     void UIManager::hideOverlay()
     {
-        // Esconde overlay sin destruirlo (permite volver a mostrarlo rápido)
+        // Hides overlay without destroying it (allows quick re-show)
         if (overlay_)
         {
             overlay_->hide();
@@ -228,7 +228,7 @@ namespace ui
 
     void UIManager::resetOverlay()
     {
-        // Limpia estado interno (selecciones previas, textos, etc.)
+        // Clears internal state (previous selections, texts, etc.)
         if (overlay_)
         {
             overlay_->reset();
@@ -237,7 +237,7 @@ namespace ui
 
     void UIManager::renderOverlay()
     {
-        // Dibuja paneles semitransparentes sobre la escena 3D
+        // Draws semi-transparent panels over 3D scene
         if (overlay_)
         {
             overlay_->render();
@@ -246,7 +246,7 @@ namespace ui
 
     void UIManager::updateHUD(const flight::FlightData &data)
     {
-        // Propaga los datos de vuelo más recientes al HUD
+        // Propagates most recent flight data to HUD
         if (hud_)
         {
             hud_->update(data);
@@ -255,7 +255,7 @@ namespace ui
 
     void UIManager::renderHUD()
     {
-        // Renderiza el HUD por encima del resto de elementos
+        // Renders HUD on top of other elements
         if (hud_)
         {
             hud_->render();

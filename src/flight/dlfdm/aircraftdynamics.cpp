@@ -24,6 +24,17 @@ namespace dlfdm
         body_total_force_ = glm::vec3(0.0f, 0.0f, 0.0f);
     }
 
+    /**
+     * @brief Computes the time derivatives of the aircraft state.
+     *
+     * Calculates the rates of change for position, velocity, orientation, and angular velocity
+     * based on the equations of motion for a rigid body aircraft.
+     *
+     * @param state Current aircraft state.
+     * @param aero Calculated aerodynamic forces and moments.
+     * @param controls Current control inputs (used for thrust).
+     * @return StateDerivatives Structure containing the computed derivatives.
+     */
     AircraftDynamics::StateDerivatives AircraftDynamics::compute_derivatives(const AircraftState &state,
                                                                              const AerodynamicsModel::AeroDynamicForces &aero,
                                                                              const ControlInputs &controls)

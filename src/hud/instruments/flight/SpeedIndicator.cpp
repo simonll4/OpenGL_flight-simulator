@@ -5,14 +5,14 @@
 namespace hud
 {
     ////////////////////////////////////////////////////////////////////////////
-    //  Configuración de la escala del tape
+    //  Tape Scale Configuration
     ////////////////////////////////////////////////////////////////////////////
 
-    static const float SPEED_STEP = 10.0f;      // Marcas cada 10 nudos
-    static const float PIXELS_PER_STEP = 30.0f; // Separación vertical entre marcas
-    static const int VISIBLE_MARKS = 12;        // Cuántas marcas mostrar arriba/abajo
+    static const float SPEED_STEP = 10.0f;      // Marks every 10 knots
+    static const float PIXELS_PER_STEP = 30.0f; // Vertical separation between marks
+    static const int VISIBLE_MARKS = 12;        // How many marks to show above/below
 
-    // Configuración visual
+    // Visual configuration
     static const float TICK_LENGTH = 16.0f;
     static const float TICK_TO_NUMBER_GAP = 6.0f;
     static const float READOUT_BOX_WIDTH = 100.0f;
@@ -22,18 +22,18 @@ namespace hud
 
     SpeedIndicator::SpeedIndicator() : Instrument()
     {
-        // Configuración específica del indicador de velocidad
+        // Speed indicator specific configuration
         size_ = glm::vec2(100.0f, 400.0f);
-        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // Verde HUD
+        color_ = glm::vec4(0.0f, 1.0f, 0.4f, 0.95f); // HUD Green
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Render principal
+    //  Main Render
     ////////////////////////////////////////////////////////////////////////////
 
     void SpeedIndicator::render(gfx::Renderer2D &renderer, const flight::FlightData &flightData)
     {
-        // Solo renderizar si está habilitado
+        // Only render if enabled
         if (!enabled_)
             return;
 
@@ -44,50 +44,50 @@ namespace hud
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Tape de velocidad (escala móvil)
+    //  Speed Tape (Moving Scale)
     ////////////////////////////////////////////////////////////////////////////
 
     void SpeedIndicator::drawSpeedTape(gfx::Renderer2D &renderer, float airspeed)
     {
-        // Calcular centro vertical del instrumento (heredado de Instrument)
+        // Calculate instrument vertical center (inherited from Instrument)
         float centerY = position_.y + size_.y * 0.5f;
-        float ticksX = position_.x + 15.0f; // Columna de ticks a la izquierda
+        float ticksX = position_.x + 15.0f; // Ticks column on the left
 
-        // Calcular desplazamiento del tape
+        // Calculate tape offset
         float baseSpeed = floor(airspeed / SPEED_STEP) * SPEED_STEP;
         float fraction = (airspeed - baseSpeed) / SPEED_STEP;
         float scrollOffset = fraction * PIXELS_PER_STEP;
 
-        // Dibujar marcas de velocidad visibles
+        // Draw visible speed marks
         for (int i = -VISIBLE_MARKS; i <= VISIBLE_MARKS; ++i)
         {
             int markSpeed = (int)baseSpeed + i * (int)SPEED_STEP;
 
-            // Saltar velocidades negativas
+            // Skip negative speeds
             if (markSpeed < 0)
                 continue;
 
             float markY = centerY + scrollOffset - i * PIXELS_PER_STEP;
 
-            // Culling de marcas fuera del área visible
+            // Cull marks outside visible area
             const float CULLING_MARGIN = 30.0f;
             if (markY < position_.y - CULLING_MARGIN || markY > position_.y + size_.y + CULLING_MARGIN)
                 continue;
 
-            // Saltar marcas dentro de la caja de lectura
+            // Skip marks inside readout box
             bool insideReadoutBox = (markY > centerY - READOUT_BOX_HEIGHT * 0.5f &&
                                      markY < centerY + READOUT_BOX_HEIGHT * 0.5f);
             if (insideReadoutBox)
                 continue;
 
-            // Dibujar tick
+            // Draw tick
             renderer.drawRect(
                 glm::vec2(ticksX, markY - 0.5f),
                 glm::vec2(TICK_LENGTH, 1.0f),
                 color_,
                 true);
 
-            // Dibujar número (solo cada 20 nudos para no saturar)
+            // Draw number (only every 20 knots to avoid clutter)
             if (markSpeed % 20 == 0)
             {
                 float numberX = ticksX + TICK_LENGTH + TICK_TO_NUMBER_GAP + 20.0f;
@@ -98,26 +98,26 @@ namespace hud
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Caja de lectura digital
+    //  Digital Readout Box
     ////////////////////////////////////////////////////////////////////////////
 
     void SpeedIndicator::drawCurrentSpeedBox(gfx::Renderer2D &renderer, float airspeed)
     {
         float centerY = position_.y + size_.y * 0.5f;
 
-        // Posicionar la caja en el centro
+        // Position box in center
         float boxX = position_.x + (size_.x - READOUT_BOX_WIDTH) * 0.5f;
         float boxY = centerY - READOUT_BOX_HEIGHT * 0.5f;
 
-        // Dibujar marco de la caja
+        // Draw box frame
         renderer.drawRect(
             glm::vec2(boxX, boxY),
             glm::vec2(READOUT_BOX_WIDTH, READOUT_BOX_HEIGHT),
             color_,
-            false // Solo borde
+            false // Border only
         );
 
-        // Dibujar chevron a la derecha de la caja
+        // Draw chevron to the right of the box
         float chevronX = boxX + READOUT_BOX_WIDTH;
         float chevronTopY = centerY - CHEVRON_HEIGHT * 0.5f;
         float chevronBotY = centerY + CHEVRON_HEIGHT * 0.5f;
@@ -135,18 +135,18 @@ namespace hud
             glm::vec2(chevronX, chevronBotY),
             color_, 2.0f);
 
-        // Mostrar velocidad actual redondeada
+        // Show current speed rounded
         int displaySpeed = (int)round(airspeed);
         if (displaySpeed < 0)
             displaySpeed = 0;
 
-        // Dibujar el número centrado
+        // Draw centered number
         glm::vec2 numberPos = glm::vec2(boxX + READOUT_BOX_WIDTH * 0.5f, centerY);
         drawSpeedNumber(renderer, displaySpeed, numberPos);
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    //  Renderizado de números (helper)
+    //  Number Rendering (Helper)
     ////////////////////////////////////////////////////////////////////////////
 
     void SpeedIndicator::drawSpeedNumber(gfx::Renderer2D &renderer, int speed, const glm::vec2 &position)

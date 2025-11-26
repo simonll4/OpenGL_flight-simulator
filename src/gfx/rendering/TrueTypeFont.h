@@ -1,3 +1,8 @@
+/**
+ * @file TrueTypeFont.h
+ * @brief TrueType font loader and renderer using stb_truetype.
+ */
+
 #pragma once
 
 #include <string>
@@ -14,7 +19,7 @@ namespace gfx
 {
 
     /**
-     * @brief Carga una fuente TrueType mediante stb_truetype y la renderiza sobre Renderer2D.
+     * @brief Loads a TrueType font using stb_truetype and renders it via Renderer2D.
      */
     class TrueTypeFont
     {
@@ -23,40 +28,40 @@ namespace gfx
         ~TrueTypeFont();
 
         /**
-         * @brief Carga la fuente desde disco y genera un atlas de textura.
-         * @param path Ruta al archivo .ttf.
-         * @param bakePixelHeight Altura en píxeles utilizada para generar el atlas.
-         * @param atlasSize Dimensión cuadrada del atlas (p.ej. 1024).
+         * @brief Loads the font from disk and generates a texture atlas.
+         * @param path Path to the .ttf file.
+         * @param bakePixelHeight Height in pixels used to generate the atlas.
+         * @param atlasSize Square dimension of the atlas (e.g., 1024).
          */
         bool loadFromFile(const std::string &path, float bakePixelHeight = 48.0f, int atlasSize = 1024);
 
         bool isLoaded() const { return textureId_ != 0; }
 
         /**
-         * @brief Devuelve el tamaño aproximado del bloque de texto.
-         * @param text Cadena a medir (soporta \n).
-         * @param pixelHeight Altura del texto al renderizar.
-         * @param lineSpacing Multiplicador para el interlineado.
+         * @brief Returns the approximate size of the text block.
+         * @param text String to measure (supports \n).
+         * @param pixelHeight Text height when rendering.
+         * @param lineSpacing Multiplier for line spacing.
          */
         glm::vec2 measureText(const std::string &text, float pixelHeight, float lineSpacing = 1.0f) const;
 
         /**
-         * @brief Renderiza texto comenzando desde la esquina superior izquierda.
-         * @param renderer Renderer2D activo.
-         * @param text Cadena a dibujar.
-         * @param topLeft Posición de inicio (esquina superior izquierda del bloque).
-         * @param pixelHeight Altura en píxeles deseada.
-         * @param color Color multiplicador.
-         * @param lineSpacing Factor de separación entre líneas.
-         * @param snapToPixel Ajusta las coordenadas a pixel centers para evitar blur.
-         * @param manageTexture Si es true, la función hace bind/unbind del atlas automáticamente.
+         * @brief Renders text starting from the top-left corner.
+         * @param renderer Active Renderer2D.
+         * @param text String to draw.
+         * @param topLeft Start position (top-left corner of the block).
+         * @param pixelHeight Desired height in pixels.
+         * @param color Color multiplier.
+         * @param lineSpacing Line spacing factor.
+         * @param snapToPixel Adjusts coordinates to pixel centers to avoid blur.
+         * @param manageTexture If true, the function automatically binds/unbinds the atlas.
          */
         void drawText(Renderer2D &renderer, const std::string &text, const glm::vec2 &topLeft,
                       float pixelHeight, const glm::vec4 &color,
                       float lineSpacing = 1.0f, bool snapToPixel = true, bool manageTexture = true) const;
 
         /**
-         * @brief Permite controlar manualmente el bind/unbind del atlas para batchear múltiples textos.
+         * @brief Allows manual control of atlas bind/unbind for batching multiple texts.
          */
         void begin(Renderer2D &renderer) const;
         void end(Renderer2D &renderer) const;

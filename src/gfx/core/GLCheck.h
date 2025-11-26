@@ -1,3 +1,8 @@
+/**
+ * @file GLCheck.h
+ * @brief OpenGL error checking utilities.
+ */
+
 #pragma once
 #include <stdexcept>
 #include <string>
@@ -13,9 +18,9 @@ namespace gfx
 {
 
     /**
-     * @brief Valida una condición relacionada a OpenGL y lanza excepción si falla.
-     * @param ok Resultado booleano del chequeo manual.
-     * @param msg Mensaje contextual que se añadirá al texto de error.
+     * @brief Validates an OpenGL-related condition and throws an exception if it fails.
+     * @param ok Boolean result of the manual check.
+     * @param msg Contextual message to be added to the error text.
      */
     inline void glCheck(bool ok, const char *msg)
     {
@@ -26,10 +31,10 @@ namespace gfx
     }
 
     /**
-     * @brief Consulta glGetError e informa qué operación provocó el fallo.
+     * @brief Queries glGetError and reports which operation caused the failure.
      *
-     * Se usa después de bloques críticos (creación de buffers, uploads de texturas,
-     * etc.) para detectar errores de estado y abortar con un mensaje descriptivo.
+     * Used after critical blocks (buffer creation, texture uploads, etc.)
+     * to detect state errors and abort with a descriptive message.
      */
     inline void checkGLError(const char *operation)
     {

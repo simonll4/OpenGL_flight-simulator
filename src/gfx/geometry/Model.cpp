@@ -112,7 +112,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
 
     aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
-    // Debug: mostrar información del material
+    // Debug: show material information
     aiString matName;
     material->Get(AI_MATKEY_NAME, matName);
     std::cout << "    Processing material: " << matName.C_Str() << std::endl;

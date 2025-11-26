@@ -1,3 +1,8 @@
+/**
+ * @file CameraRig.h
+ * @brief Camera system with multiple view modes (first-person, third-person, cinematic).
+ */
+
 #pragma once
 
 #include <glm/glm.hpp>

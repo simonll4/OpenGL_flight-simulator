@@ -2,43 +2,25 @@
 
 Este documento describe los shaders GLSL utilizados en el proyecto, ubicados en el directorio `shaders/`.
 
-## 1. Terreno (`clipmap.vert`, `clipmap.frag`)
-Renderiza el terreno utilizando la técnica de **Geometry Clipmaps** para un nivel de detalle (LOD) dinámico y eficiente.
+## 1. Terreno Plano (`terrain_plane.vert`, `terrain_plane.frag`)
+Renderiza un plano texturizado que se desplaza con la cámara. No usa heightmap ni niveles de detalle.
 
-### Vertex Shader (`clipmap.vert`)
+### Vertex Shader (`terrain_plane.vert`)
 - **Entradas**: Posición del vértice (`a_Pos`).
-- **Uniforms**: Matrices de transformación, texturas de heightmap/normalmap, parámetros de clipmap (escala, nivel, offset de altura).
+- **Uniforms**: Matrices de transformación, tamaño del tile (`u_TileSize`) y factor de tiling (`u_TextureTiling`).
 - **Proceso**:
-  - Calcula la posición mundial basada en el modelo.
-  - Mapea la posición mundial a coordenadas UV para leer el heightmap.
-  - (Nota: En la implementación actual, la altura se fija en 0.0 y la normal en (0,1,0) para un terreno plano, aunque la lógica para leer el heightmap está presente pero no se aplica al `gl_Position` final en este shader específico, posiblemente para simplificación o debug).
-  - Calcula el nivel de LOD para visualización de depuración.
+  - Calcula posición en mundo con el modelo (Y=0 siempre).
+  - Usa una normal fija `(0,1,0)`.
+  - Genera coordenadas UV a partir de la posición mundial y el factor de tiling.
 
-### Fragment Shader (`clipmap.frag`)
-- **Uniforms**: Texturas (heightmap, normalmap, textura de terreno), color de fondo (niebla), posición de cámara.
+### Fragment Shader (`terrain_plane.frag`)
+- **Uniforms**: Textura de color, color de fondo (para niebla), posición de cámara.
 - **Proceso**:
-  - Aplica una textura de terreno con tiling.
+  - Samplea la textura con `GL_REPEAT`.
   - Calcula iluminación direccional simple (Lambert).
-  - Aplica niebla lineal basada en la distancia a la cámara.
-  - Permite visualizar niveles de LOD mediante colores (verde a rojo) si `u_ShowLODColors` está activo.
+  - Aplica niebla lineal basada en distancia.
 
-## 2. Terreno Detallado (`terrain.vert`, `terrain.frag`)
-Una alternativa para renderizado de terreno con mapeo triplanar y texturas de detalle.
-
-### Vertex Shader (`terrain.vert`)
-- **Entradas**: Posición y normal.
-- **Uniforms**: Matriz ViewProjection, offset de grid (para snapping).
-- **Proceso**: Desplaza los vértices según el offset del grid para acompañar a la cámara.
-
-### Fragment Shader (`terrain.frag`)
-- **Uniforms**: Texturas (albedo, normal, roughness, detalle), tintes, configuración de tiling.
-- **Proceso**:
-  - **Triplanar Mapping**: Proyecta texturas en los ejes X, Y, Z y las mezcla según la normal del terreno para evitar distorsión en pendientes.
-  - **Detalle**: Mezcla una textura de detalle sobre la textura base.
-  - **Iluminación**: Lambert + Ambient + Roughness.
-  - **Niebla Exponencial**: Para suavizar el horizonte.
-
-## 3. Modelo (`model.vert`, `model.frag`)
+## 2. Modelo (`model.vert`, `model.frag`)
 Shader estándar para renderizar objetos 3D (como el avión F-16).
 
 ### Vertex Shader (`model.vert`)
@@ -52,7 +34,7 @@ Shader estándar para renderizar objetos 3D (como el avión F-16).
   - Aplica corrección Gamma.
   - Soporta texturas difusas o un color gris por defecto.
 
-## 4. Skybox (`skybox.vert`, `skybox.frag`)
+## 3. Skybox (`skybox.vert`, `skybox.frag`)
 Renderiza el fondo del entorno utilizando un Cube Map.
 
 ### Vertex Shader (`skybox.vert`)
@@ -61,7 +43,7 @@ Renderiza el fondo del entorno utilizando un Cube Map.
 ### Fragment Shader (`skybox.frag`)
 - **Proceso**: Muestrea un `samplerCube` para obtener el color del cielo.
 
-## 5. HUD (`hud.vert`, `hud.frag`)
+## 4. HUD (`hud.vert`, `hud.frag`)
 Renderizado 2D para la interfaz de usuario y el Head-Up Display.
 
 ### Vertex Shader (`hud.vert`)
@@ -75,7 +57,7 @@ Renderizado 2D para la interfaz de usuario y el Head-Up Display.
   - Aplica `smoothstep` para suavizar bordes de texto (anti-aliasing simple).
   - Multiplica el color del vértice por la textura.
 
-## 6. Waypoints (`waypoint.vert`, `waypoint.frag`)
+## 5. Waypoints (`waypoint.vert`, `waypoint.frag`)
 Renderiza los marcadores visuales de los waypoints en el mundo 3D.
 
 ### Vertex Shader (`waypoint.vert`)

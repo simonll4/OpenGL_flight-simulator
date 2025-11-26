@@ -1,3 +1,8 @@
+/**
+ * @file Altimeter.h
+ * @brief Altimeter instrument with vertical tape and digital display.
+ */
+
 #pragma once
 #include "../../core/Instrument.h"
 
@@ -5,12 +10,12 @@ namespace hud
 {
     /**
      * @class Altimeter
-     * @brief Tape vertical + display digital para la altitud barométrica.
+     * @brief Vertical tape + digital display for barometric altitude.
      *
-     * Extiende `Instrument` para dibujar:
-     *  - Una escala móvil con marcas cada 100 ft.
-     *  - Una caja central con lectura numérica en 7 segmentos.
-     *  - Un chevron que conecta el tape con la lectura digital.
+     * Extends `Instrument` to draw:
+     *  - A moving scale with marks every 100 ft.
+     *  - A central box with a 7-segment numeric readout.
+     *  - A chevron connecting the tape to the digital readout.
      */
     class Altimeter : public Instrument
     {
@@ -18,14 +23,14 @@ namespace hud
         Altimeter();
 
         /**
-         * @brief Renderiza el altímetro con los datos de vuelo actuales
-         * @param renderer Renderer 2D compartido
-         * @param flightData Datos del vuelo (especialmente altitude)
+         * @brief Renders the altimeter with current flight data.
+         * @param renderer Shared 2D renderer.
+         * @param flightData Flight data (especially altitude).
          */
         void render(gfx::Renderer2D &renderer, const flight::FlightData &flightData) override;
 
     private:
-        // Métodos específicos del altímetro
+        // Altimeter-specific methods
         void drawBackground(gfx::Renderer2D &renderer);
         void drawAltitudeTape(gfx::Renderer2D &renderer, float altitude);
         void drawCurrentAltitudeBox(gfx::Renderer2D &renderer, float altitude);

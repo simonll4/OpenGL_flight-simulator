@@ -1,20 +1,18 @@
 /**
  * @file MissionPlanner.h
- * @brief Editor de misiones y planificador de waypoints
+ * @brief Mission editor and waypoint planner.
  *
- * Esta clase proporciona una interfaz de usuario interactiva para
- * definir la ruta de vuelo que seguirá el avión en la simulación. La
- * interfaz se compone de tres paneles: un mapa ortográfico donde se
- * insertan y arrastran los waypoints, un gráfico de altitud en función
- * de la distancia para visualizar el perfil vertical y ajustar alturas,
- * y un storyboard de tarjetas que resume cada segmento de la misión.
+ * This class provides an interactive user interface for defining the flight
+ * path the aircraft will follow in the simulation. The interface consists of
+ * three panels: an orthographic map where waypoints are inserted and dragged,
+ * an altitude vs. distance graph to visualize the vertical profile and adjust
+ * heights, and a storyboard of cards summarizing each mission segment.
  *
- * El planificador se encarga de convertir las posiciones en el mundo
- * (coordenadas XZ) a coordenadas de pantalla, de gestionar los eventos
- * de entrada (ratón y teclado) y de actualizar la estructura
- * MissionDefinition con los cambios realizados por el usuario. El
- * objetivo es ofrecer una herramienta sencilla pero profesional para
- * configurar misiones antes de lanzar el simulador de vuelo.
+ * The planner handles converting world positions (XZ coordinates) to screen
+ * coordinates, managing input events (mouse and keyboard), and updating the
+ * MissionDefinition structure with user changes. The goal is to offer a simple
+ * yet professional tool for configuring missions before launching the flight
+ * simulator.
  */
 
 #pragma once
@@ -28,19 +26,18 @@
 #include "../../gfx/rendering/TextRenderer.h"
 #include "../../gfx/rendering/TrueTypeFont.h"
 
-// Reenvío de la estructura GLFWwindow para no incluir GLFW en el header
+// Forward declaration of GLFWwindow struct to avoid including GLFW in header
 struct GLFWwindow;
 
 namespace ui
 {
 
     /**
-     * @brief Estructura de resultados devueltos por el planificador
+     * @brief Results returned by the planner.
      *
-     * Cuando el usuario interactúa con la interfaz, puede solicitar
-     * iniciar la misión (startRequested) o cancelar y volver al menú
-     * principal (cancelRequested). Estos flags son consumidos por el
-     * bucle principal de la aplicación.
+     * When the user interacts with the interface, they can request to start
+     * the mission (startRequested) or cancel and return to the main menu
+     * (cancelRequested). These flags are consumed by the application's main loop.
      */
     struct PlannerResult
     {
@@ -49,14 +46,13 @@ namespace ui
     };
 
     /**
-     * @brief Planificador de misiones con edición gráfica de waypoints
+     * @brief Mission planner with graphical waypoint editing.
      *
-     * La clase MissionPlanner encapsula toda la lógica de la pantalla de
-     * planificación. Utiliza un Renderer2D compartido para dibujar la
-     * interfaz y un MissionDefinition como almacenamiento de la misión
-     * actual en construcción. El usuario puede añadir, mover y eliminar
-     * waypoints en el mapa, ajustar sus altitudes mediante comandos de
-     * teclado y visualizar el perfil de altitud y la distancia total.
+     * The MissionPlanner class encapsulates all logic for the planning screen.
+     * It uses a shared Renderer2D to draw the interface and a MissionDefinition
+     * as storage for the current mission under construction. The user can add,
+     * move, and remove waypoints on the map, adjust their altitudes via keyboard
+     * commands, and visualize the altitude profile and total distance.
      */
     class MissionPlanner
     {
@@ -64,92 +60,90 @@ namespace ui
         MissionPlanner();
 
         /**
-         * @brief Inicializa el planificador
-         * @param screenWidth Ancho de pantalla en píxeles
-         * @param screenHeight Alto de pantalla en píxeles
-         * @param sharedRenderer Puntero a un Renderer2D ya inicializado
+         * @brief Initializes the planner.
+         * @param screenWidth Screen width in pixels.
+         * @param screenHeight Screen height in pixels.
+         * @param sharedRenderer Pointer to an already initialized Renderer2D.
          */
         void init(int screenWidth, int screenHeight, gfx::Renderer2D *sharedRenderer);
 
         /**
-         * @brief Ajusta el tamaño de pantalla
+         * @brief Adjusts screen size.
          *
-         * Debe llamarse cuando la ventana se redimensiona para recalcular
-         * disposiciones y escalados.
+         * Should be called when the window is resized to recalculate layouts and scaling.
          */
         void setScreenSize(int width, int height);
 
         /**
-         * @brief Carga una misión existente para editar
-         * @param mission Definición de misión a editar
+         * @brief Loads an existing mission for editing.
+         * @param mission Mission definition to edit.
          *
-         * Se copia la misión suministrada en el planificador y se calcula
-         * automáticamente el encuadre del mapa en base a la posición de
-         * salida y los waypoints existentes. También se reinician todos
-         * los estados de interacción.
+         * The supplied mission is copied into the planner, and the map framing
+         * is automatically calculated based on the start position and existing
+         * waypoints. All interaction states are also reset.
          */
         void loadMission(const mission::MissionDefinition &mission);
 
         /**
-         * @brief Actualiza el estado del planificador
-         * @param window Puntero a la ventana GLFW para leer entradas
-         * @param deltaTime Tiempo en segundos transcurrido desde el último frame
+         * @brief Updates planner state.
+         * @param window Pointer to GLFW window for reading inputs.
+         * @param deltaTime Time in seconds elapsed since last frame.
          */
         void update(GLFWwindow *window, float deltaTime);
 
         /**
-         * @brief Dibuja la interfaz del planificador
+         * @brief Draws the planner interface.
          */
         void render();
 
         /**
-         * @brief Devuelve el estado de la interacción del planificador
+         * @brief Returns the planner interaction state.
          */
         PlannerResult getResult() const { return result_; }
 
         /**
-         * @brief Obtiene una referencia constante a la misión en edición
+         * @brief Gets a constant reference to the mission being edited.
          */
         const mission::MissionDefinition &getMission() const { return workingMission_; }
 
         /**
-         * @brief Restablece el planificador a un estado neutro
+         * @brief Resets the planner to a neutral state.
          *
-         * Limpia los indicadores de inicio/cancelación y anula las
-         * interacciones en curso. No elimina ni altera los waypoints.
+         * Clears start/cancel flags and cancels ongoing interactions.
+         * Does not remove or alter waypoints.
          */
         void reset();
 
-        // === Funcionalidades adicionales ===
+        // === Additional Functionality ===
         /**
-         * @brief Genera un informe de la misión (no implementado)
+         * @brief Generates a mission report (not implemented).
          */
         void generateMissionReport();
 
         /**
-         * @brief Genera automáticamente un patrón de waypoints
-         * @param pattern Selección de patrón (0: cuadrado, 1: círculo, etc.)
+         * @brief Automatically generates a waypoint pattern.
+         * @param pattern Pattern selection (0: square, 1: circle, etc.).
          */
         void autoGenerateWaypoints(int pattern);
 
         /**
-         * @brief Valida si la misión cumple requisitos mínimos
-         * @return true si hay al menos un waypoint definido
+         * @brief Validates if the mission meets minimum requirements.
+         * @return true if at least one waypoint is defined.
          */
         bool validateMission() const;
 
         /**
-         * @brief Guarda la misión en un archivo JSON (no implementado)
+         * @brief Saves the mission to a JSON file (not implemented).
          */
         void saveMissionToFile(const std::string &path);
 
         /**
-         * @brief Carga una misión desde un archivo JSON (no implementado)
+         * @brief Loads a mission from a JSON file (not implemented).
          */
         void loadMissionFromFile(const std::string &path);
 
     private:
-        // === Métodos internos ===
+        // === Internal Methods ===
         void updateLayout();
         void handleKeyboardInput(GLFWwindow *window, float deltaTime);
         void handleMouseInput(GLFWwindow *window);
@@ -176,15 +170,15 @@ namespace ui
         bool cursorInsideStoryboard() const;
         float computeMissionLength() const;
 
-        // === Miembros ===
-        gfx::Renderer2D *renderer_ = nullptr;       ///< Renderizador 2D compartido
-        mission::MissionDefinition workingMission_; ///< Misión en construcción
-        PlannerResult result_;                      ///< Resultado de la última interacción
+        // === Members ===
+        gfx::Renderer2D *renderer_ = nullptr;       ///< Shared 2D renderer
+        mission::MissionDefinition workingMission_; ///< Mission under construction
+        PlannerResult result_;                      ///< Result of the last interaction
 
-        int screenWidth_ = 1280; ///< Ancho de pantalla actual
-        int screenHeight_ = 720; ///< Alto de pantalla actual
+        int screenWidth_ = 1280; ///< Current screen width
+        int screenHeight_ = 720; ///< Current screen height
 
-        // Rectángulos de la interfaz
+        // Interface rectangles
         glm::vec2 mapOrigin_ = glm::vec2(0.0f);
         glm::vec2 mapSize_ = glm::vec2(1.0f);
         glm::vec2 profileOrigin_ = glm::vec2(0.0f);
@@ -195,16 +189,16 @@ namespace ui
         glm::vec2 buttonSize_ = glm::vec2(220.0f, 56.0f);
         glm::vec2 cursorPos_ = glm::vec2(0.0f);
 
-        // Variables de navegación y escala
-        glm::vec2 mapCenter_ = glm::vec2(0.0f); ///< Punto central en el mundo representado en pantalla
-        float mapHalfExtent_ = 10000.0f;        ///< Extensión máxima visible en cada eje (metros)
-        float defaultAltitude_ = 1500.0f;       ///< Altitud predeterminada para nuevos waypoints
+        // Navigation and scale variables
+        glm::vec2 mapCenter_ = glm::vec2(0.0f); ///< Center point in world represented on screen
+        float mapHalfExtent_ = 10000.0f;        ///< Maximum visible extent on each axis (meters)
+        float defaultAltitude_ = 1500.0f;       ///< Default altitude for new waypoints
 
-        int selectedIndex_ = -1;  ///< Índice de waypoint seleccionado para edición
-        bool draggingXY_ = false; ///< Se está arrastrando un waypoint en el plano XZ
-        int draggingIndex_ = -1;  ///< Índice del waypoint que se arrastra
+        int selectedIndex_ = -1;  ///< Index of waypoint selected for editing
+        bool draggingXY_ = false; ///< Waypoint is being dragged in XZ plane
+        int draggingIndex_ = -1;  ///< Index of waypoint being dragged
 
-        // Flags de estado de botones/teclas
+        // Button/key state flags
         bool leftMouseHeld_ = false;
         bool rightMouseHeld_ = false;
         bool enterHeld_ = false;
@@ -212,14 +206,14 @@ namespace ui
         bool rHeld_ = false;
         bool fHeld_ = false;
 
-        // Estados de hover y selección
+        // Hover and selection states
         bool startButtonHovered_ = false;
         int hoveredCardIndex_ = -1;
 
-        // Cachés de renderizado
+        // Render caches
         float cachedMissionLength_ = 0.0f;
         float storyboardCardHeight_ = 90.0f;
-        float panSpeed_ = 200.0f; ///< Velocidad de paneo del mapa en metros/segundo
+        float panSpeed_ = 200.0f; ///< Map panning speed in meters/second
 
         gfx::TrueTypeFont plannerFont_;
         bool plannerFontReady_ = false;

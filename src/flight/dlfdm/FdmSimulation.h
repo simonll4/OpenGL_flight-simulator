@@ -1,3 +1,8 @@
+/**
+ * @file FdmSimulation.h
+ * @brief High-level FDM (Flight Dynamics Model) simulation wrapper.
+ */
+
 #pragma once
 
 #include <memory>
@@ -13,16 +18,19 @@
 namespace flight
 {
     /**
-     * @brief Wrapper de alto nivel para integrar el FDMSolver dentro del simulador.
+     * @brief High-level wrapper for integrating the FDMSolver into the simulator.
      *
-     * Gestiona el tiempo fijo del integrador, mappea entradas normalizadas [-1,1]
-     * a deflexiones reales y expone posición/orientación listas para el motor 3D.
+     * Manages the fixed time step of the integrator, maps normalized inputs [-1, 1]
+     * to real deflections, and exposes position/orientation ready for the 3D engine.
      */
     class FdmSimulation
     {
     public:
         FdmSimulation();
 
+        /**
+         * @brief Initializes the simulation with default aircraft parameters and trim state.
+         */
         void initialize();
 
         struct StateValidation
@@ -33,8 +41,21 @@ namespace flight
             float gForceMargin = 1.0f;
         };
 
+        /**
+         * @brief Sets the control inputs for the aircraft.
+         *
+         * @param elevator Normalized elevator input [-1, 1].
+         * @param aileron Normalized aileron input [-1, 1].
+         * @param rudder Normalized rudder input [-1, 1].
+         * @param throttle Normalized throttle input [0, 1].
+         */
         void setNormalizedInputs(float elevator, float aileron, float rudder, float throttle);
+
+        /**
+         * @brief Validates the current physical state (stall, spin, G-limits).
+         */
         void validatePhysicalState();
+
         StateValidation getStateValidation() const { return stateValidation_; }
 
         void enableLogging(const std::string &filename);
@@ -42,7 +63,9 @@ namespace flight
         bool isLoggingEnabled() const { return logFile_.is_open(); }
 
         /**
-         * @brief Actualiza el solver usando un acumulador de paso fijo.
+         * @brief Updates the solver using a fixed time step accumulator.
+         *
+         * @param deltaTime Time elapsed since the last frame (seconds).
          */
         void update(float deltaTime);
 

@@ -8,6 +8,14 @@
 namespace crash {
 
 namespace {
+
+/**
+ * @brief Signal handler for segmentation faults.
+ *
+ * Captures the stack trace and prints it to stderr before terminating the application.
+ *
+ * @param int Signal number (unused).
+ */
 void handleSegfault(int) {
     void* array[32];
     size_t size = backtrace(array, 32);
@@ -18,6 +26,7 @@ void handleSegfault(int) {
 } // namespace
 
 void installCrashHandler() {
+    // Register the segmentation fault handler
     signal(SIGSEGV, handleSegfault);
 }
 

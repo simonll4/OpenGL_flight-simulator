@@ -1,3 +1,8 @@
+/**
+ * @file Instrument.h
+ * @brief Abstract base class for HUD instruments.
+ */
+
 #pragma once
 #include <glm/glm.hpp>
 #include "../../gfx/rendering/Renderer2D.h"
@@ -7,73 +12,73 @@ namespace hud
 {
     /**
      * @class Instrument
-     * @brief Clase base abstracta para todos los instrumentos del HUD
+     * @brief Abstract base class for all HUD instruments.
      *
-     * Esta clase define la interfaz común para todos los instrumentos de vuelo.
-     * Proporciona:
-     * - Propiedades comunes (posición, tamaño, color) expresadas en píxeles relativos al viewport del HUD
-     * - Métodos de configuración (setters) para integrarse con los layouts calculados por FlightHUD
-     * - Interfaz de renderizado (método virtual puro) que recibe el Renderer2D y los datos de vuelo ya actualizados
+     * This class defines the common interface for all flight instruments.
+     * It provides:
+     * - Common properties (position, size, color) expressed in pixels relative to the HUD viewport.
+     * - Configuration methods (setters) to integrate with layouts calculated by FlightHUD.
+     * - Rendering interface (pure virtual method) that receives the Renderer2D and updated flight data.
      *
-     * Cada instrumento específico (Altimeter, AttitudeIndicator, etc.)
-     * debe heredar de esta clase e implementar su propio método render().
+     * Each specific instrument (Altimeter, AttitudeIndicator, etc.)
+     * must inherit from this class and implement its own render() method.
      */
     class Instrument
     {
     public:
         /**
-         * @brief Constructor por defecto
-         * Inicializa el instrumento con valores predeterminados
+         * @brief Default constructor.
+         * Initializes the instrument with default values.
          */
         Instrument();
 
         /**
-         * @brief Destructor virtual para permitir polimorfismo
+         * @brief Virtual destructor to allow polymorphism.
          */
         virtual ~Instrument() = default;
 
         // ====================================================================
-        // MÉTODOS DE CONFIGURACIÓN COMUNES
+        // COMMON CONFIGURATION METHODS
         // ====================================================================
 
         /**
-         * @brief Establece la posición del instrumento en coordenadas de pantalla
-         * @param position Posición (x, y) de la esquina superior izquierda
+         * @brief Sets the instrument position in screen coordinates.
+         * @param position Position (x, y) of the top-left corner.
          *
-         * La posición equivale al origen local que usa cada instrumento para convertir
-         * coordenadas Normalized Device Coordinates (NDC) a píxeles.
+         * The position equates to the local origin used by each instrument to convert
+         * Normalized Device Coordinates (NDC) to pixels.
          */
         void setPosition(const glm::vec2 &position) { position_ = position; }
 
         /**
-         * @brief Establece el tamaño del instrumento
-         * @param size Dimensiones (ancho, alto) del instrumento
+         * @brief Sets the instrument size.
+         * @param size Dimensions (width, height) of the instrument.
          *
-         * Los instrumentos usan este tamaño para escalar geometría proporcionalmente
-         * y mantener una apariencia consistente en cualquier resolución.
+         * Instruments use this size to scale geometry proportionally
+         * and maintain a consistent appearance at any resolution.
          */
         void setSize(const glm::vec2 &size) { size_ = size; }
 
         /**
-         * @brief Establece el color principal del instrumento
-         * @param color Color RGBA (valores entre 0.0 y 1.0)
+         * @brief Sets the main color of the instrument.
+         * @param color RGBA color (values between 0.0 and 1.0).
          *
-         * Normalmente se usa un verde translúcido para imitar HUD reales, pero la
-         * propiedad permite variaciones para estados especiales o temas alternos.
+         * Typically a translucent green is used to mimic real HUDs, but the
+         * property allows variations for special states or alternate themes.
          */
         void setColor(const glm::vec4 &color) { color_ = color; }
 
         /**
-         * @brief Habilita o deshabilita la visualización del instrumento
-         * @param enabled true para mostrar, false para ocultar
+         * @brief Enables or disables the instrument display.
+         * @param enabled true to show, false to hide.
          *
-         * FlightHUD usa este flag para no invocar render() cuando un módulo está
-         * configurado como opcional o temporalmente indisponible.
+         * FlightHUD uses this flag to not invoke render() when a module is
+         * configured as optional or temporarily unavailable.
          */
         void setEnabled(bool enabled) { enabled_ = enabled; }
 
         // ====================================================================
-        // MÉTODOS DE ACCESO (GETTERS)
+        // ACCESS METHODS (GETTERS)
         // ====================================================================
 
         const glm::vec2 &getPosition() const { return position_; }
@@ -82,28 +87,28 @@ namespace hud
         bool isEnabled() const { return enabled_; }
 
         // ====================================================================
-        // INTERFAZ DE RENDERIZADO
+        // RENDERING INTERFACE
         // ====================================================================
 
         /**
-         * @brief Renderiza el instrumento en pantalla
-         * @param renderer Renderer 2D compartido
-         * @param flightData Datos actuales del vuelo
+         * @brief Renders the instrument on screen.
+         * @param renderer Shared 2D renderer.
+         * @param flightData Current flight data.
          *
-         * Este método debe ser implementado por cada instrumento específico.
-         * Es responsable de dibujar todos los elementos visuales del instrumento.
+         * This method must be implemented by each specific instrument.
+         * It is responsible for drawing all visual elements of the instrument.
          */
         virtual void render(gfx::Renderer2D &renderer, const flight::FlightData &flightData) = 0;
 
     protected:
         // ====================================================================
-        // PROPIEDADES COMUNES A TODOS LOS INSTRUMENTOS
+        // COMMON PROPERTIES FOR ALL INSTRUMENTS
         // ====================================================================
 
-        glm::vec2 position_; ///< Posición en pantalla (x, y)
-        glm::vec2 size_;     ///< Tamaño del instrumento (ancho, alto)
-        glm::vec4 color_;    ///< Color principal RGBA
-        bool enabled_;       ///< Si el instrumento está activo/visible
+        glm::vec2 position_; ///< Screen position (x, y).
+        glm::vec2 size_;     ///< Instrument size (width, height).
+        glm::vec4 color_;    ///< Main RGBA color.
+        bool enabled_;       ///< Whether the instrument is active/visible.
     };
 
 } // namespace hud

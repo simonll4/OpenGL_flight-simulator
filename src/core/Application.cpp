@@ -11,7 +11,7 @@ extern "C"
 
 #include "gfx/skybox/TextureCube.h"
 #include "gfx/skybox/SkyboxRenderer.h"
-#include "gfx/terrain/ClipmapTerrain.h"
+#include "gfx/terrain/TerrainPlane.h"
 #include "gfx/core/Shader.h"
 #include "gfx/geometry/Model.h"
 #include "mission/MissionController.h"
@@ -41,6 +41,7 @@ namespace core
           cameraRig_(std::make_unique<systems::CameraRig>()),
           waypointSystem_(std::make_unique<systems::WaypointSystem>())
     {
+        // Initialize the shared context with default values
         context_.appState = mission::AppState::Menu;
         context_.screenWidth = kInitialWidth;
         context_.screenHeight = kInitialHeight;
@@ -53,17 +54,20 @@ namespace core
 
     int Application::run()
     {
+        // Attempt to initialize the application
         if (!initialize())
         {
             return EXIT_FAILURE;
         }
 
+        // Enter the main game loop
         mainLoop();
         return EXIT_SUCCESS;
     }
 
     bool Application::initialize()
     {
+        // 1. Initialize GLFW
         if (!glfwInit())
         {
             std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -71,21 +75,25 @@ namespace core
         }
         glfwInitialized_ = true;
 
+        // 2. Create the window and context
         if (!initWindow())
         {
             return false;
         }
 
+        // 3. Initialize GLAD (OpenGL function pointers)
         if (!initGLAD())
         {
             return false;
         }
 
+        // 4. Load resources (models, textures, etc.)
         if (!initResources())
         {
             return false;
         }
 
+        // 5. Initialize application states
         initStates();
         context_.lastFrame = static_cast<float>(glfwGetTime());
         return true;
@@ -93,10 +101,12 @@ namespace core
 
     bool Application::initWindow()
     {
+        // Configure GLFW context version and profile (OpenGL 3.3 Core)
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+        // Create the window
         window_ = glfwCreateWindow(kInitialWidth, kInitialHeight, kWindowTitle, nullptr, nullptr);
         if (!window_)
         {
@@ -104,8 +114,9 @@ namespace core
             return false;
         }
 
+        // Set context and callbacks
         glfwMakeContextCurrent(window_);
-        glfwSwapInterval(1);
+        glfwSwapInterval(1); // Enable V-Sync
         glfwSetWindowUserPointer(window_, this);
         glfwSetFramebufferSizeCallback(window_, [](GLFWwindow *window, int width, int height)
                                        {
@@ -115,6 +126,7 @@ namespace core
 
         context_.window = window_;
 
+        // Get actual framebuffer size
         int width = 0;
         int height = 0;
         glfwGetFramebufferSize(window_, &width, &height);
@@ -130,6 +142,7 @@ namespace core
 
     bool Application::initGLAD()
     {
+        // Load OpenGL function pointers
         if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
         {
             std::cerr << "Failed to initialize GLAD" << std::endl;
@@ -138,6 +151,7 @@ namespace core
 
         gladInitialized_ = true;
 
+        // Log OpenGL info
         std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
         std::cout << "OpenGL version: " << glGetString(GL_VERSION) << std::endl;
 
@@ -147,33 +161,35 @@ namespace core
 
     bool Application::initResources()
     {
+        // Load mission data
         if (!missionController_->loadMissions(kMissionPath))
         {
             return false;
         }
 
+        // Initialize UI
         if (!uiManager_->initialize(context_.screenWidth, context_.screenHeight, &missionController_->registry()))
         {
             std::cerr << "Failed to initialize UI Manager" << std::endl;
             return false;
         }
 
+        // Initialize simulation systems
         flightController_->initialize();
         cameraRig_->initialize(flightController_->planePosition(), flightController_->planeOrientation());
         waypointSystem_->initialize();
 
-        clipmapConfig_ = std::make_unique<gfx::ClipmapConfig>();
-        clipmapConfig_->levels = 14;
-        clipmapConfig_->segments = 64;
-        clipmapConfig_->segmentSize = 4.0f;
-        clipmapConfig_->heightScale = 3000.0f;
-        clipmapConfig_->heightOffset = 0.0f;
-        clipmapConfig_->terrainSize = 200000.0f;
-        clipmapConfig_->fogMinDist = 1000.0f;
-        clipmapConfig_->fogMaxDist = 100000.0f;
+        // Configure terrain plane (flat, textured)
+        terrainConfig_ = std::make_unique<gfx::TerrainConfig>();
+        terrainConfig_->segments = 32;
+        terrainConfig_->segmentSize = 2000.0f;
+        terrainConfig_->textureTiling = 40.0f;
+        terrainConfig_->fogMinDist = 1000.0f;
+        terrainConfig_->fogMaxDist = 100000.0f;
 
         try
         {
+            // Load skybox
             cubemap_ = std::make_unique<gfx::TextureCube>();
             if (!cubemap_->loadFromAtlas("assets/textures/skybox/Cubemap_Sky_22-512x512.png", false))
             {
@@ -185,14 +201,16 @@ namespace core
             skybox_->init();
             skybox_->setCubemap(cubemap_.get());
 
-            terrain_ = std::make_unique<gfx::ClipmapTerrain>(*clipmapConfig_);
+            // Initialize flat terrain
+            terrain_ = std::make_unique<gfx::TerrainPlane>(*terrainConfig_);
             terrain_->init();
-            if (!terrain_->loadTextures("assets/textures/terrain"))
+            if (!terrain_->loadTexture("assets/textures/terrain"))
             {
                 std::cerr << "Failed to load terrain textures" << std::endl;
                 return false;
             }
 
+            // Load aircraft model
             modelShader_ = std::make_unique<gfx::Shader>("shaders/model.vert", "shaders/model.frag");
             aircraftModel_ = std::make_unique<Model>("assets/models/f16.glb");
         }
@@ -202,12 +220,13 @@ namespace core
             return false;
         }
 
+        // Populate context with resource pointers
         context_.missionController = missionController_.get();
         context_.uiManager = uiManager_.get();
         context_.flightController = flightController_.get();
         context_.cameraRig = cameraRig_.get();
         context_.waypointSystem = waypointSystem_.get();
-        context_.clipmapConfig = clipmapConfig_.get();
+        context_.terrainConfig = terrainConfig_.get();
         context_.terrain = terrain_.get();
         context_.skybox = skybox_.get();
         context_.cubemap = cubemap_.get();
@@ -219,10 +238,12 @@ namespace core
 
     void Application::initStates()
     {
+        // Register available states
         states_[mission::AppState::Menu] = std::make_unique<states::MenuState>();
         states_[mission::AppState::Planning] = std::make_unique<states::PlanningState>();
         states_[mission::AppState::Running] = std::make_unique<states::FlightState>();
 
+        // Start in the Menu state
         activeStateId_ = mission::AppState::Menu;
         activeState_ = states_[activeStateId_].get();
         if (activeState_)
@@ -238,9 +259,11 @@ namespace core
             updateTiming();
             handleResize();
 
+            // Clear buffers
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            // Update and render the active state
             if (activeState_)
             {
                 activeState_->handleInput(context_);
@@ -248,6 +271,7 @@ namespace core
                 activeState_->render(context_);
             }
 
+            // Check for state transitions
             transitionIfNeeded();
 
             glfwSwapBuffers(window_);
@@ -343,6 +367,7 @@ namespace core
         }
         shuttingDown_ = true;
 
+        // Exit the current state
         if (activeState_)
         {
             activeState_->onExit(context_);
@@ -350,12 +375,13 @@ namespace core
         }
         states_.clear();
 
+        // Release resources
         aircraftModel_.reset();
         modelShader_.reset();
         terrain_.reset();
         skybox_.reset();
         cubemap_.reset();
-        clipmapConfig_.reset();
+        terrainConfig_.reset();
 
         waypointSystem_.reset();
         cameraRig_.reset();
@@ -363,8 +389,10 @@ namespace core
         uiManager_.reset();
         missionController_.reset();
 
+        // Reset context
         context_ = AppContext{};
 
+        // Destroy window and terminate GLFW
         if (window_)
         {
             glfwDestroyWindow(window_);
