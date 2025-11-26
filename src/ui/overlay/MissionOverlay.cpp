@@ -270,17 +270,19 @@ namespace ui
 
     void MissionOverlay::renderBriefing()
     {
-        const float panelW = screenWidth_ * 0.65f;
-        const float panelH = screenHeight_ * 0.55f;
+        // Panel más grande y mejor centrado
+        const float panelW = screenWidth_ * 0.55f;
+        const float panelH = screenHeight_ * 0.50f;
         const float panelX = (screenWidth_ - panelW) * 0.5f;
         const float panelY = (screenHeight_ - panelH) * 0.5f;
 
         drawBox(panelX, panelY, panelW, panelH);
 
-        const glm::vec2 titlePos(panelX + panelW * 0.5f, panelY + 40.0f);
-        const glm::vec4 titleColor(0.35f, 0.85f, 1.0f, 1.0f);
+        // Título más grande y prominente
+        const glm::vec2 titlePos(panelX + panelW * 0.5f, panelY + 55.0f);
+        const glm::vec4 titleColor(0.35f, 0.90f, 1.0f, 1.0f);
         drawOverlayText(missionName_.empty() ? "MISSION BRIEFING" : missionName_,
-                        titlePos, 28.0f, titleColor, glm::vec2(0.5f, 0.5f));
+                        titlePos, 34.0f, titleColor, glm::vec2(0.5f, 0.5f));
 
         auto lines = splitLines(briefingText_);
         if (lines.empty())
@@ -288,77 +290,82 @@ namespace ui
             lines.emplace_back("Sin briefing disponible.");
         }
 
-        float textY = panelY + 90.0f;
+        // Textos del cuerpo más grandes y legibles
+        float textY = panelY + 120.0f;
         const glm::vec4 bodyColor(0.85f, 0.92f, 1.0f, 0.95f);
         for (const auto &line : lines)
         {
             drawOverlayText(line.empty() ? " " : line,
                             glm::vec2(panelX + panelW * 0.5f, textY),
-                            16.0f, bodyColor, glm::vec2(0.5f, 0.0f));
-            textY += 18.0f;
-            if (textY > panelY + panelH - 80.0f)
+                            22.0f, bodyColor, glm::vec2(0.5f, 0.0f));
+            textY += 28.0f;
+            if (textY > panelY + panelH - 100.0f)
             {
                 break;
             }
         }
 
-        float blinkAlpha = 0.55f + 0.45f * std::sin(blinkTimer_ * 3.0f);
+        // Prompt más visible y grande
+        float blinkAlpha = 0.6f + 0.4f * std::sin(blinkTimer_ * 3.0f);
         glm::vec4 promptColor(0.4f, 1.0f, 0.6f, blinkAlpha);
-        drawOverlayText("ENTER  LISTO PARA DESPEGAR",
-                        glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 36.0f),
-                        18.0f, promptColor, glm::vec2(0.5f, 0.5f));
+        drawOverlayText("ENTER   LISTO PARA DESPEGAR",
+                        glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 50.0f),
+                        24.0f, promptColor, glm::vec2(0.5f, 0.5f));
     }
 
     void MissionOverlay::renderCompletion()
     {
-        const float panelW = screenWidth_ * 0.55f;
-        const float panelH = screenHeight_ * 0.45f;
+        const float panelW = screenWidth_ * 0.50f;
+        const float panelH = screenHeight_ * 0.50f;
         const float panelX = (screenWidth_ - panelW) * 0.5f;
         const float panelY = (screenHeight_ - panelH) * 0.5f;
 
         drawBox(panelX, panelY, panelW, panelH);
 
+        // Título más grande
         const glm::vec4 titleColor(1.0f, 0.9f, 0.5f, 1.0f);
         drawOverlayText(missionName_.empty() ? "MISION COMPLETADA" : missionName_,
-                        glm::vec2(panelX + panelW * 0.5f, panelY + 40.0f),
-                        26.0f, titleColor, glm::vec2(0.5f, 0.5f));
+                        glm::vec2(panelX + panelW * 0.5f, panelY + 55.0f),
+                        32.0f, titleColor, glm::vec2(0.5f, 0.5f));
 
+        // Métricas más grandes y legibles
         auto metricsLines = splitLines(metricsText_);
-        float textY = panelY + 85.0f;
+        float textY = panelY + 110.0f;
         const glm::vec4 metricsColor(0.85f, 0.95f, 1.0f, 0.95f);
         for (const auto &line : metricsLines)
         {
             drawOverlayText(line.empty() ? " " : line,
                             glm::vec2(panelX + panelW * 0.5f, textY),
-                            18.0f, metricsColor, glm::vec2(0.5f, 0.0f));
-            textY += 20.0f;
+                            22.0f, metricsColor, glm::vec2(0.5f, 0.0f));
+            textY += 28.0f;
         }
 
-        const float optionY = panelY + panelH - 95.0f;
-        const float optionSpacing = 38.0f;
-        const float blinkAlpha = 0.55f + 0.45f * std::sin(blinkTimer_ * 4.0f);
+        // Opciones más grandes y mejor espaciadas
+        const float optionY = panelY + panelH - 120.0f;
+        const float optionSpacing = 45.0f;
+        const float blinkAlpha = 0.6f + 0.4f * std::sin(blinkTimer_ * 4.0f);
 
         auto drawOption = [&](const std::string &label, float x, float y, bool highlighted)
         {
             glm::vec4 color = highlighted
                                   ? glm::vec4(0.4f, 0.9f, 1.0f, blinkAlpha)
                                   : glm::vec4(0.7f, 0.8f, 0.9f, 0.85f);
-            drawOverlayText(label, glm::vec2(x, y), 18.0f, color, glm::vec2(0.5f, 0.5f));
+            drawOverlayText(label, glm::vec2(x, y), 22.0f, color, glm::vec2(0.5f, 0.5f));
         };
 
         const float centerX = panelX + panelW * 0.5f;
-        drawOption("TAB  VOLVER AL MENU",
+        drawOption("TAB   VOLVER AL MENU",
                    centerX,
                    optionY,
                    selectedOption_ == 0);
-        drawOption("SPACE  VUELO LIBRE",
+        drawOption("SPACE   VUELO LIBRE",
                    centerX,
                    optionY + optionSpacing,
                    selectedOption_ == 1);
 
-        drawOverlayText("ESC  SALIR DEL SIMULADOR",
-                        glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 36.0f),
-                        16.0f, glm::vec4(0.65f, 0.75f, 0.9f, 0.85f), glm::vec2(0.5f, 0.5f));
+        drawOverlayText("ESC   SALIR DEL SIMULADOR",
+                        glm::vec2(panelX + panelW * 0.5f, panelY + panelH - 45.0f),
+                        18.0f, glm::vec4(0.65f, 0.75f, 0.9f, 0.85f), glm::vec2(0.5f, 0.5f));
     }
 
     void MissionOverlay::drawBackground(float alpha)

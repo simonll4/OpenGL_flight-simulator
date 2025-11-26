@@ -621,8 +621,8 @@ namespace ui
             float altVal = minAlt + t * range;
             std::ostringstream oss;
             oss << static_cast<int>(std::round(altVal)) << " m";
-            drawPlannerText(oss.str(), glm::vec2(graphOrigin.x - 12.0f, y), 13.0f,
-                            glm::vec4(0.7f, 0.85f, 1.0f, 0.9f), glm::vec2(1.0f, 0.5f));
+            drawPlannerText(oss.str(), glm::vec2(graphOrigin.x - 14.0f, y), 15.0f,
+                            glm::vec4(0.75f, 0.88f, 1.0f, 0.95f), glm::vec2(1.0f, 0.5f));
         }
         // Líneas verticales y etiquetas de distancia
         int vLines = 4;
@@ -635,8 +635,8 @@ namespace ui
             float distVal = (t * totalDistance) / 1000.0f;
             std::ostringstream oss;
             oss << std::fixed << std::setprecision(1) << distVal << " km";
-            drawPlannerText(oss.str(), glm::vec2(x, graphOrigin.y + 18.0f), 13.0f,
-                            glm::vec4(0.7f, 0.85f, 1.0f, 0.9f), glm::vec2(0.5f, 0.0f));
+            drawPlannerText(oss.str(), glm::vec2(x, graphOrigin.y + 20.0f), 15.0f,
+                            glm::vec4(0.75f, 0.88f, 1.0f, 0.95f), glm::vec2(0.5f, 0.0f));
         }
         // Dibujar curvas y nodos
         glm::vec2 prevPt = glm::vec2(graphOrigin.x, graphOrigin.y - ((nodes[0].y - minAlt) / range) * graphSize.y);
@@ -663,17 +663,17 @@ namespace ui
             glm::vec4 color = active    ? glm::vec4(0.95f, 0.4f, 0.6f, 1.0f)
                               : hovered ? glm::vec4(0.35f, 0.75f, 1.0f, 1.0f)
                                         : glm::vec4(0.25f, 0.6f, 0.9f, 1.0f);
-            renderer_->drawCircle(currentPt, 4.5f, color, 32, true);
-            renderer_->drawCircle(currentPt, 6.5f, glm::vec4(color.r, color.g, color.b, 0.35f), 32, false);
+            renderer_->drawCircle(currentPt, 5.0f, color, 32, true);
+            renderer_->drawCircle(currentPt, 7.0f, glm::vec4(color.r, color.g, color.b, 0.35f), 32, false);
             if (i > 0)
             {
                 std::string label = "WP" + std::to_string(static_cast<int>(i));
-                drawPlannerText(label, currentPt + glm::vec2(0.0f, -11.0f), 13.5f,
+                drawPlannerText(label, currentPt + glm::vec2(0.0f, -13.0f), 15.0f,
                                 glm::vec4(0.98f, 0.99f, 1.0f, 1.0f), glm::vec2(0.5f, 1.0f));
             }
             else
             {
-                drawPlannerText("S", currentPt + glm::vec2(0.0f, -11.0f), 13.5f,
+                drawPlannerText("S", currentPt + glm::vec2(0.0f, -13.0f), 15.0f,
                                 glm::vec4(0.98f, 0.99f, 1.0f, 1.0f), glm::vec2(0.5f, 1.0f));
             }
         }

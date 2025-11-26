@@ -77,11 +77,11 @@ void main()
     // Calcular UV desde posición mundial
     v_TexCoord = worldToUV(v_FragPos.xz);
 
-    // Aplicar altura desde heightmap
-    v_FragPos.y = getHeight(v_TexCoord);
+    // Terreno plano en Y=0 (sin elevaciones del heightmap)
+    v_FragPos.y = 0.0;
 
-    // Obtener normal
-    v_Normal = getNormal(v_TexCoord);
+    // Normal apuntando hacia arriba para terreno plano
+    v_Normal = vec3(0.0, 1.0, 0.0);
 
     // Nivel de LOD para debug
     v_LODLevel = u_Level;
