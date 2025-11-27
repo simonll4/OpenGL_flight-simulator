@@ -18,6 +18,7 @@ namespace states
 
     void MenuState::onEnter(core::AppContext &context)
     {
+        // Entering menu: set state and restore last selected mission if persisted.
         context.appState = mission::AppState::Menu;
         if (!menuStateRestored_ && context.missionController)
         {
@@ -33,6 +34,7 @@ namespace states
 
     void MenuState::handleInput(core::AppContext &context)
     {
+        // Pure 2D UI: depth not needed while navigating menu.
         glDisable(GL_DEPTH_TEST);
         if (context.uiManager)
         {
@@ -50,12 +52,14 @@ namespace states
         ui::MenuResult result = context.uiManager->getMenuResult();
         if (result.exitRequested)
         {
+            // ESC in menu requests closing the app.
             glfwSetWindowShouldClose(context.window, true);
             return;
         }
 
         if (result.missionSelected)
         {
+            // Mission picked: persist selection, preload planner, and move to Planning state.
             const mission::MissionDefinition *selectedMission =
                 context.missionController->registry().getMissionByIndex(result.selectedMissionIndex);
             if (selectedMission)

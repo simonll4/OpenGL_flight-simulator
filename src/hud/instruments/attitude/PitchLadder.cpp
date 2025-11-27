@@ -102,13 +102,13 @@ namespace hud
         float sinRoll = std::sin(rollRad);
 
         // Lambda function to rotate a point around (centerX, centerY)
-        auto rotatePoint = [&](glm::vec2 p) -> glm::vec2 {
+        auto rotatePoint = [&](glm::vec2 p) -> glm::vec2
+        {
             float dx = p.x - centerX;
             float dy = p.y - centerY;
             return glm::vec2(
                 centerX + dx * cosRoll - dy * sinRoll,
-                centerY + dx * sinRoll + dy * cosRoll
-            );
+                centerY + dx * sinRoll + dy * cosRoll);
         };
 
         // Calculate endpoints of the two parts of the line (cut to leave crosshair visible)
@@ -139,12 +139,12 @@ namespace hud
             // Left marker (vertical)
             glm::vec2 leftMarkerStartRaw(centerX - lineWidthPx, lineY);
             glm::vec2 leftMarkerEndRaw(centerX - lineWidthPx,
-                                    lineY + (isPositive ? markerSizePx : -markerSizePx));
-            
+                                       lineY + (isPositive ? markerSizePx : -markerSizePx));
+
             // Right marker (vertical)
             glm::vec2 rightMarkerStartRaw(centerX + lineWidthPx, lineY);
             glm::vec2 rightMarkerEndRaw(centerX + lineWidthPx,
-                                     lineY + (isPositive ? markerSizePx : -markerSizePx));
+                                        lineY + (isPositive ? markerSizePx : -markerSizePx));
 
             // Apply rotation to markers
             renderer.drawLine(rotatePoint(leftMarkerStartRaw), rotatePoint(leftMarkerEndRaw), color_, 2.0f);

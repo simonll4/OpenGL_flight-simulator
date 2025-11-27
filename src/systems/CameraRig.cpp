@@ -24,11 +24,11 @@ namespace systems
 
         // Regenerate cinematic points relative to the starting position
         cinematicPoints_.clear();
-        
+
         // Runway/Takeoff views - Closer now
         cinematicPoints_.push_back(planePos + glm::vec3(150.0f, 30.0f, 150.0f));
         cinematicPoints_.push_back(planePos + glm::vec3(-150.0f, 20.0f, -150.0f));
-        
+
         // Mid-distance views - Also closer
         cinematicPoints_.push_back(planePos + glm::vec3(300.0f, 50.0f, 300.0f));
         cinematicPoints_.push_back(planePos + glm::vec3(-300.0f, 80.0f, 100.0f));
@@ -126,7 +126,7 @@ namespace systems
         // Rigid third person view
         glm::vec3 targetPos = planePos - forward * cameraDistance_ + up * (cameraDistance_ * 0.4f);
         glm::vec3 lookTarget = planePos + forward * 5.0f;
-        
+
         cameraPos_ = targetPos;
         cameraFront_ = glm::normalize(lookTarget - targetPos);
         cameraUp_ = up;
@@ -138,12 +138,13 @@ namespace systems
         // 1. If we have no points, or the plane is too far from ALL points, generate a new one near the plane.
         // 2. Switch to the best existing point if available.
 
-        float kMaxDistance = 300.0f; // If plane is further than this, we need a new camera.
+        float kMaxDistance = 300.0f;   // If plane is further than this, we need a new camera.
         float kSpawnDistance = 150.0f; // Distance to spawn new camera from plane.
 
         // Check distance to current camera
         float currentDist = 100000.0f;
-        if (!cinematicPoints_.empty()) {
+        if (!cinematicPoints_.empty())
+        {
             currentDist = glm::distance(planePos, cinematicPoints_[currentCinematicIndex_]);
         }
 
@@ -168,13 +169,13 @@ namespace systems
             // Spawn a point 300m away in a somewhat random direction
             float theta = static_cast<float>(rand() % 360);
             float phi = static_cast<float>(rand() % 45 + 10); // 10 to 55 degrees up
-            
+
             float x = kSpawnDistance * std::cos(glm::radians(phi)) * std::cos(glm::radians(theta));
             float y = kSpawnDistance * std::sin(glm::radians(phi));
             float z = kSpawnDistance * std::cos(glm::radians(phi)) * std::sin(glm::radians(theta));
 
             glm::vec3 spawnPos = planePos + glm::vec3(x, y, z);
-            
+
             cinematicPoints_.push_back(spawnPos);
             bestIndex = cinematicPoints_.size() - 1;
             bestDist = glm::distance(planePos, spawnPos);
@@ -183,18 +184,19 @@ namespace systems
         // Hysteresis for switching
         if (bestIndex != -1 && bestIndex != currentCinematicIndex_)
         {
-             float distToBest = glm::distance(planePos, cinematicPoints_[bestIndex]);
-             
-             // Switch if the new point is significantly closer (e.g. 70% of current distance)
-             // OR if the current distance is getting too large (> 600m)
-             if (distToBest < currentDist * 0.7f || currentDist > kMaxDistance * 0.8f)
-             {
-                 currentCinematicIndex_ = bestIndex;
-             }
+            float distToBest = glm::distance(planePos, cinematicPoints_[bestIndex]);
+
+            // Switch if the new point is significantly closer (e.g. 70% of current distance)
+            // OR if the current distance is getting too large (> 600m)
+            if (distToBest < currentDist * 0.7f || currentDist > kMaxDistance * 0.8f)
+            {
+                currentCinematicIndex_ = bestIndex;
+            }
         }
-        
+
         // Safety check
-        if (currentCinematicIndex_ >= 0 && currentCinematicIndex_ < static_cast<int>(cinematicPoints_.size())) {
+        if (currentCinematicIndex_ >= 0 && currentCinematicIndex_ < static_cast<int>(cinematicPoints_.size()))
+        {
             cameraPos_ = cinematicPoints_[currentCinematicIndex_];
             cameraFront_ = glm::normalize(planePos - cameraPos_);
             cameraUp_ = glm::vec3(0.0f, 1.0f, 0.0f);

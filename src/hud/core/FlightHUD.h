@@ -20,9 +20,6 @@
 #include "../instruments/attitude/BankAngleIndicator.h"
 #include "../instruments/attitude/PitchLadder.h"
 
-// TODO: Add includes for future instruments
-// #include "HeadingIndicator.h"
-
 namespace hud
 {
     /**
@@ -88,9 +85,6 @@ namespace hud
         WaypointIndicator *waypointIndicator_;
         BankAngleIndicator *bankAngleIndicator_;
         PitchLadder *pitchLadder_;
-
-        // TODO: Add references to future instruments here
-        // HeadingIndicator* headingIndicator_;
 
         // ========================================================================
         // DATA AND CONFIGURATION

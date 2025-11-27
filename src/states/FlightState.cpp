@@ -41,6 +41,7 @@ namespace states
 
         mission::MissionRuntime &runtime = context.missionController->runtime();
 
+        // Let the overlay consume input first (briefing/completion screens).
         if (context.uiManager->handleOverlayInput(context.window))
         {
             if (context.uiManager->overlayReadyToFly())
@@ -64,6 +65,7 @@ namespace states
             }
         }
 
+        // If overlay is visible, only allow ESC to exit to menu after completion.
         if (context.uiManager->isOverlayVisible())
         {
             if (glfwGetKey(context.window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -81,6 +83,7 @@ namespace states
             return;
         }
 
+        // ESC closes the app.
         if (glfwGetKey(context.window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             if (!escPressed_)
@@ -95,6 +98,7 @@ namespace states
             escPressed_ = false;
         }
 
+        // TAB: request return to mission menu.
         if (glfwGetKey(context.window, GLFW_KEY_TAB) == GLFW_PRESS)
         {
             if (!tabPressed_)
@@ -110,6 +114,7 @@ namespace states
             tabPressed_ = false;
         }
 
+        // M: skip active waypoint.
         if (glfwGetKey(context.window, GLFW_KEY_M) == GLFW_PRESS)
         {
             if (!mPressed_ && context.waypointSystem)
@@ -123,6 +128,7 @@ namespace states
             mPressed_ = false;
         }
 
+        // R: restart current mission.
         if (glfwGetKey(context.window, GLFW_KEY_R) == GLFW_PRESS)
         {
             if (!rPressed_)
@@ -136,6 +142,7 @@ namespace states
             rPressed_ = false;
         }
 
+        // Forward flight and camera controls to their systems.
         if (context.flightController)
         {
             context.flightController->handleControls(context.window, context.deltaTime);
@@ -156,6 +163,7 @@ namespace states
         mission::MissionRuntime &runtime = context.missionController->runtime();
         context.uiManager->updateOverlay(context.deltaTime);
 
+        // If mission ended and prompt not shown yet, show completion overlay.
         if (runtime.isCompleted() && !completionPromptShown_)
         {
             context.uiManager->showCompletionPrompt(runtime);
@@ -168,6 +176,7 @@ namespace states
             completionPromptShown_ = false;
         }
 
+        // Handle menu exit request (overlay/TAB).
         if (runtime.menuExitRequested())
         {
             runtime.reset();
@@ -180,14 +189,17 @@ namespace states
             return;
         }
 
+        // Physics runs only if runtime allows (not paused).
         if (runtime.shouldRunPhysics())
         {
             context.flightController->step(context.deltaTime);
         }
 
+        // Update mission progress and metrics using latest flight data.
         runtime.updateProgress(context.flightController->getFlightData(), context.deltaTime);
         runtime.updateMetrics(context.flightController->getFlightData(), context.deltaTime);
 
+        // Waypoints advance based on current plane position.
         if (context.waypointSystem)
         {
             context.waypointSystem->update(context.flightController->planePosition(),
@@ -195,6 +207,7 @@ namespace states
                                            runtime);
         }
 
+        // Camera follows aircraft with its rig.
         if (context.cameraRig)
         {
             context.cameraRig->update(context.deltaTime,
@@ -216,11 +229,13 @@ namespace states
         const glm::mat4 &view = context.cameraRig->viewMatrix();
         glm::mat4 projection = context.cameraRig->projectionMatrix(context.screenWidth, context.screenHeight);
 
+        // Background: skybox.
         if (context.skybox)
         {
             context.skybox->draw(view, projection);
         }
 
+        // Flat terrain with fog tuned to camera altitude.
         if (context.terrainConfig && context.terrain)
         {
             context.terrainConfig->fogMinDist = context.cameraRig->position().y * 0.5f;
@@ -228,6 +243,7 @@ namespace states
             context.terrain->draw(view, projection, context.cameraRig->position(), glm::vec3(0.5f, 0.7f, 1.0f));
         }
 
+        // Aircraft model rendering with simple lighting.
         if (context.modelShader && context.aircraftModel)
         {
             context.modelShader->use();
@@ -266,11 +282,13 @@ namespace states
             context.aircraftModel->Draw(*context.modelShader);
         }
 
+        // 3D waypoints.
         if (context.waypointSystem)
         {
             context.waypointSystem->render(view, projection, context.missionController->runtime());
         }
 
+        // HUD only in first-person camera.
         if (context.cameraRig->isFirstPerson() && context.uiManager)
         {
             glDisable(GL_DEPTH_TEST);
@@ -279,6 +297,7 @@ namespace states
             glEnable(GL_DEPTH_TEST);
         }
 
+        // Briefing/completion overlay when needed.
         if (context.missionController->runtime().shouldShowOverlay() && context.uiManager)
         {
             glDisable(GL_DEPTH_TEST);

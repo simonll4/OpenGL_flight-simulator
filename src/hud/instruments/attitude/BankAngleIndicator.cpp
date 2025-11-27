@@ -98,8 +98,10 @@ namespace hud
                     // Render integer value of the angle using the global Renderer2D
                     // Normalize the display value to be in [-180, 180]
                     int displayValue = static_cast<int>(lineAngle);
-                    while (displayValue > 180) displayValue -= 360;
-                    while (displayValue < -180) displayValue += 360;
+                    while (displayValue > 180)
+                        displayValue -= 360;
+                    while (displayValue < -180)
+                        displayValue += 360;
 
                     gfx::TextRenderer::drawString(
                         renderer,

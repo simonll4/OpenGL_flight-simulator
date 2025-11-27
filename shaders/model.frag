@@ -16,7 +16,7 @@ uniform vec3 lightPos;
 uniform vec3 lightColor;
 uniform vec3 viewPos;
 
-void main() {    
+void main() {
     // Get material color
     vec3 objectColor = hasTextureDiffuse ? texture(texture_diffuse1, TexCoords).rgb : vec3(0.7, 0.7, 0.7);
     

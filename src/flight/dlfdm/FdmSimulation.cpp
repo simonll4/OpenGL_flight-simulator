@@ -27,7 +27,7 @@ namespace flight
     {
         // Set up default aircraft parameters
         aircraftParams_ = buildDefaultAircraft();
-        
+
         // Set up initial trim state (steady level flight)
         trimState_ = buildDefaultTrimState();
         trimControls_ = buildDefaultTrimControls();
@@ -182,11 +182,13 @@ namespace flight
 
         // Calcular roll a partir de los vectores right y up de la cámara
         const glm::vec3 &right = cachedFlightData_.cameraRight;
-        const glm::vec3 &up    = cachedFlightData_.cameraUp;
+        const glm::vec3 &up = cachedFlightData_.cameraUp;
         float rollRad = std::atan2(-right.y, up.y);
         float rollDeg = glm::degrees(rollRad);
-        if (rollDeg > 180.0f) rollDeg -= 360.0f;
-        else if (rollDeg < -180.0f) rollDeg += 360.0f;
+        if (rollDeg > 180.0f)
+            rollDeg -= 360.0f;
+        else if (rollDeg < -180.0f)
+            rollDeg += 360.0f;
         cachedFlightData_.roll = rollDeg;
 
         float heading = glm::degrees(std::atan2(front.x, -front.z));

@@ -347,7 +347,6 @@ namespace ui
         drawMenuText("W/S NAVIGATE    ENTER START    ESC EXIT",
                      glm::vec2(xPos, instrY + 12.0f),
                      18.0f, glm::vec4(0.7f, 0.8f, 0.95f, 1.0f), glm::vec2(0.5f, 0.5f));
-
     }
 
     glm::vec2 MissionMenu::menuTextSize(const std::string &text, float size, float lineSpacing) const

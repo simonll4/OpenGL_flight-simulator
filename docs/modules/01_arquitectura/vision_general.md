@@ -11,7 +11,7 @@ La clase `core::Application` gestiona el ciclo de vida de la aplicación:
 1.  **Inicialización (`init`)**:
     *   Configura GLFW y GLAD.
     *   Crea la ventana y el contexto OpenGL.
-    *   Inicializa los subsistemas (Renderer, Audio, Input).
+    *   Inicializa los subsistemas (Renderer, Input).
     *   Carga los recursos globales (Shaders, Modelos).
 
 2.  **Bucle Principal (`run`)**:
@@ -65,8 +65,7 @@ Para evitar singletons globales o pasar demasiados parámetros, se utiliza una e
 ```cpp
 struct AppContext {
     GLFWwindow* window;
-    ResourceManager* resources;
-    AudioManager* audio;
+
     // ... otros sistemas
 };
 ```

@@ -24,7 +24,7 @@ La cámara se "pega" a la posición del avión con un pequeño offset (la cabeza
 
 ### Tercera Persona (Chase)
 La cámara sigue al avión desde atrás y arriba.
-*   **Suavizado (Smoothing)**: Para dar sensación de velocidad y peso, la cámara no sigue rígidamente al avión. Se usa interpolación lineal (Lerp) o exponencial para que la cámara tenga un ligero retraso ("lag") al girar.
+*   **Seguimiento**: Actualmente es rígido (sin lerp). Se calcula la posición objetivo detrás/arriba y se asigna directo. Si se quisiera el “lag”, habría que interpolar `cameraPos_`/`cameraFront_` hacia un objetivo con un factor dependiente de `dt` y/o velocidad.
 
 ### Cámara Cinematográfica
 Alterna entre puntos fijos en el mundo (torres de control, montañas) y sigue al avión con la mirada (`lookAt`).

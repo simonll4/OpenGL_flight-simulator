@@ -5,14 +5,15 @@
 
 #pragma once
 
-namespace crash {
+namespace crash
+{
 
-/**
- * @brief Installs signal handlers for crash reporting.
- *
- * Currently handles SIGSEGV (Segmentation Fault) to print a stack trace
- * before exiting.
- */
-void installCrashHandler();
+    /**
+     * @brief Installs signal handlers for crash reporting.
+     *
+     * Currently handles SIGSEGV (Segmentation Fault) to print a stack trace
+     * before exiting.
+     */
+    void installCrashHandler();
 
 } // namespace crash

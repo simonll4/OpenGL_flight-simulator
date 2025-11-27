@@ -72,7 +72,7 @@ namespace systems
         glm::vec3 cameraUp_ = glm::vec3(0.0f, 1.0f, 0.0f);
 
         float cameraDistance_ = 20.0f;
-        
+
         CameraMode currentMode_ = CameraMode::ThirdPerson;
 
         glm::mat4 viewMatrix_ = glm::mat4(1.0f);

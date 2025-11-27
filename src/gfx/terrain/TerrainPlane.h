@@ -31,11 +31,11 @@ namespace gfx
      */
     struct TerrainConfig
     {
-        int segments = 32;                ///< Segmentos por lado del grid.
-        float segmentSize = 2000.0f;      ///< Tamaño de cada segmento en metros.
-        float textureTiling = 12.0f;      ///< Cuántas veces se repite la textura por tile.
-        float fogMinDist = 1000.0f;       ///< Distancia mínima de niebla.
-        float fogMaxDist = 100000.0f;     ///< Distancia máxima de niebla.
+        int segments = 32;            ///< Segmentos por lado del grid.
+        float segmentSize = 2000.0f;  ///< Tamaño de cada segmento en metros.
+        float textureTiling = 12.0f;  ///< Cuántas veces se repite la textura por tile.
+        float fogMinDist = 1000.0f;   ///< Distancia mínima de niebla.
+        float fogMaxDist = 100000.0f; ///< Distancia máxima de niebla.
     };
 
     /**

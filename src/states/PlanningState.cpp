@@ -20,6 +20,7 @@ namespace states
 
     void PlanningState::onEnter(core::AppContext &context)
     {
+        // Entering planner: set state and clear previous UI artifacts.
         context.appState = mission::AppState::Planning;
         if (context.uiManager)
         {
@@ -29,6 +30,7 @@ namespace states
 
     void PlanningState::handleInput(core::AppContext &context)
     {
+        // Planner is 2D: disable depth and forward input/time to UI.
         glDisable(GL_DEPTH_TEST);
         if (context.uiManager)
         {
@@ -46,6 +48,7 @@ namespace states
         ui::PlannerResult result = context.uiManager->getPlannerResult();
         if (result.cancelRequested)
         {
+            // Cancel: return to menu without launching the mission.
             context.uiManager->resetPlanner();
             context.appState = mission::AppState::Menu;
             return;
@@ -53,6 +56,7 @@ namespace states
 
         if (result.startRequested)
         {
+            // Confirm start: commit mission, start runtime and prep subsystems.
             mission::MissionDefinition mission = context.uiManager->getPlannerMission();
             context.missionController->setCurrentMission(mission);
             context.missionController->startMission();
