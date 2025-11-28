@@ -128,12 +128,6 @@ namespace gfx
         shader_.setFloat("waypointAlpha", color.a);
         shader_.setBool("isActive", isActive);
 
-        // The shader requires the observer's position for simple specular effects;
-        // obtained by inverting the view matrix.
-        glm::mat4 viewInv = glm::inverse(view);
-        glm::vec3 viewPos = glm::vec3(viewInv[3]);
-        shader_.setVec3("viewPos", viewPos);
-
         glBindVertexArray(vao_);
         glDrawElements(GL_TRIANGLES, indexCount_, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);

@@ -30,7 +30,7 @@ Shader estándar para renderizar objetos 3D (como el avión F-16).
 ### Fragment Shader (`model.frag`)
 - **Uniforms**: Textura difusa, propiedades de luz (posición, color), posición de vista.
 - **Proceso**:
-  - Implementa el modelo de iluminación **Blinn-Phong** (Ambiente + Difuso + Especular).
+  - Implementa el modelo de iluminación **Phong** (Ambiente + Difuso + Especular).
   - Aplica corrección Gamma.
   - Soporta texturas difusas o un color gris por defecto.
 

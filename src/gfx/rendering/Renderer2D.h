@@ -60,18 +60,25 @@ namespace gfx
         void setTexture(GLuint textureId);
 
         // Basic primitives
+        /// Thickened 2D segment rendered como quad.
         void drawLine(const glm::vec2 &start, const glm::vec2 &end, const glm::vec4 &color, float thickness = 1.0f);
+        /// Eje-alineado; `filled=false` dibuja solo el borde.
         void drawRect(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, bool filled = true);
+        /// Círculo aproximado por triángulos; relleno u outline.
         void drawCircle(const glm::vec2 &center, float radius, const glm::vec4 &color, int segments = 32, bool filled = true);
-        void drawArc(const glm::vec2 &center, float radius, float startAngle, float endAngle, const glm::vec4 &color, int segments = 32);
 
         // Instrument-specific shapes
+        /// Marca radial para escalas circulares (HSI, bank angle).
         void drawTick(const glm::vec2 &center, float angle, float innerRadius, float outerRadius, const glm::vec4 &color, float thickness = 1.0f);
+        /// Serie de ticks distribuidos entre dos ángulos.
         void drawScale(const glm::vec2 &center, float radius, float startAngle, float endAngle, int numTicks, const glm::vec4 &color);
 
         // Additional primitives for attitude HUD instruments
+        /// Polilínea abierta/cerrada con grosor.
         void drawPolyline(const std::vector<glm::vec2> &points, const glm::vec4 &color, float thickness = 1.0f, bool closed = false);
+        /// Triángulo relleno o solo contorno.
         void drawTriangle(const glm::vec2 &p1, const glm::vec2 &p2, const glm::vec2 &p3, const glm::vec4 &color, bool filled = false);
+        /// Quad texturizado con UV explícitos.
         void drawTexturedQuad(const glm::vec2 &topLeft, const glm::vec2 &bottomRight, const glm::vec4 &color,
                               const glm::vec2 &uvMin, const glm::vec2 &uvMax);
 

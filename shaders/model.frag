@@ -24,7 +24,7 @@ void main() {
     vec3 N = normalize(Normal);
     vec3 L = normalize(lightPos - FragPos);
     vec3 V = normalize(viewPos - FragPos);
-    vec3 H = normalize(L + V);
+    vec3 R = reflect(-L, N);
     
     // Ambient
     float ambientStrength = 0.4;
@@ -34,9 +34,9 @@ void main() {
     float diff = max(dot(N, L), 0.0);
     vec3 diffuse = diff * lightColor * objectColor;
     
-    // Specular (Blinn-Phong)
+    // Specular (Phong)
     float specularStrength = 0.5;
-    float spec = pow(max(dot(N, H), 0.0), 32.0);
+    float spec = pow(max(dot(R, V), 0.0), 32.0);
     vec3 specular = specularStrength * spec * lightColor;
     
     // Combine

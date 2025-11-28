@@ -46,6 +46,7 @@ classDiagram
     TerrainPlane ..> Shader : usa
     TerrainPlane ..> Texture : usa
     Skybox ..> Shader : usa
+    WaypointRenderer ..> Shader : usa
 ```
 
 ## 2. Subsistemas Principales
@@ -97,7 +98,7 @@ Maneja la visualización del mundo.
 
 Los shaders (ubicados en `shaders/`) son programas que corren en la GPU. El motor los gestiona y recarga.
 
-*   **`model.vert/frag`**: Iluminación Blinn-Phong para el avión.
+*   **`model.vert/frag`**: Iluminación Phong para el avión.
 *   **`terrain_plane.vert/frag`**: Tiling de texturas y niebla para el suelo.
 *   **`hud.vert/frag`**: Renderizado de colores planos y texturas para la UI 2D.
 *   **`skybox.vert/frag`**: Renderizado del cubemap del cielo.

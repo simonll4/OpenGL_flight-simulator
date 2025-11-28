@@ -6,7 +6,6 @@ in vec3 Normal;
 
 uniform vec3 waypointColor;
 uniform float waypointAlpha;
-uniform vec3 viewPos;
 uniform bool isActive;
 
 void main()

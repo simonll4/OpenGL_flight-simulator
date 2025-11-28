@@ -269,23 +269,7 @@ namespace gfx
         }
     }
 
-    void Renderer2D::drawArc(const glm::vec2 &center, float radius, float startAngle, float endAngle, const glm::vec4 &color, int segments)
-    {
-        float angleRange = endAngle - startAngle;
-        int arcSegments = (int)(segments * angleRange / (2.0f * M_PI));
-
-        for (int i = 0; i < arcSegments; ++i)
-        {
-            float angle1 = startAngle + angleRange * i / arcSegments;
-            float angle2 = startAngle + angleRange * (i + 1) / arcSegments;
-
-            glm::vec2 pos1 = center + glm::vec2(cos(angle1), sin(angle1)) * radius;
-            glm::vec2 pos2 = center + glm::vec2(cos(angle2), sin(angle2)) * radius;
-
-            drawLine(pos1, pos2, color, 1.0f);
-        }
-    }
-
+    // Instrument-specific shapes
     void Renderer2D::drawTick(const glm::vec2 &center, float angle, float innerRadius, float outerRadius, const glm::vec4 &color, float thickness)
     {
         glm::vec2 inner = center + glm::vec2(cos(angle), sin(angle)) * innerRadius;
